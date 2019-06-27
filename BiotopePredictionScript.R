@@ -131,15 +131,7 @@ test.raw2=test.raw[,c(1:13531,13532,13533,13534,13535,13536,13537,13538,13539,13
 names(test.raw2)
 dim(test.raw2)
 
-## Change name of variable columns to
-names(test.raw2)[names(test.raw2) == 'clim_chlorophyll_a_Annual Mean_2002to2010_mean'] <- 'Chla'
-names(test.raw2)[names(test.raw2) == 'clim_suspended_matters_Annual Mean_2002to2010'] <- 'SPM'
-names(test.raw2)[names(test.raw2) == 'ices_ann_avg_saltB'] <- 'Sal'
-names(test.raw2)[names(test.raw2) == 'ices_ann_avg_tempB'] <- 'Temp'
-names(test.raw2)[names(test.raw2) == 'PeakWaveOrb'] <- 'WOV'
-names(test.raw2)[names(test.raw2) == 'PeakWC_Stress'] <- 'Stress'
-names(test.raw2)[names(test.raw2) == 'Av_current'] <- 'AvCur'
-names(test.raw2)[names(test.raw2) == 'bathy_500'] <- 'Depth'
+
 
 ## Check col names have changed
 names(test.raw2)
