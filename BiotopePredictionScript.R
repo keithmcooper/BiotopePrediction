@@ -196,8 +196,12 @@ all2fam=all2[,c(19,31:666)]
 famabundtest=aggregate(. ~ Family, all2fam, sum)
 
 ## Check number of columns has reduced
-dim(famabundtest)# 774 families 441 cols
+dim(famabundtest)# 776 families 637 cols
 #View(famabundtest)
+
+## Find number of familes (rows with total of >1)
+numfamtest=rowSums(famabundtest[,c(2:637)])
+sum(numfamtest > 0)# 311
 
 ## Write file and close
 #write.csv(famabundtest,file = "DATA/famabundtest.csv",row.names=TRUE)
@@ -295,7 +299,7 @@ names(pos)
 
 #### TEST DATA: DF WITH SAME FAMILIES AS TRAIN DATA ####
 
-## Note that test data (df famabundtest) has 774 families, whereas train has only 703. Therefore we need to remove the additional families from test data for predict. Note that this doesn't mean the test data has 774 families as many rows (taxa) will have zero abundance.
+## Note that test data (df famabundtest) has 776 families, whereas train has only 703. Therefore we need to remove the additional families from test data for predict. Note that this doesn't mean the test data has 774 families as many rows (taxa) will have zero abundance.
 
 ## First create a dataframe for family names from the train data (df train.data5)
 template=colnames(train.data5)# this is a vector
