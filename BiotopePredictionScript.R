@@ -296,7 +296,7 @@ pos=train.data4.5[,c(1,807:808)]
 ## Check names of df 'pos'
 names(pos)
 
-#### IDENTIFY FAMILiES PRESENT IN TEST DATA THAT ARE NOT FOUND IN TRAIN DATA ####
+#### IDENTIFY FAMILIES PRESENT IN TEST DATA THAT ARE NOT FOUND IN TRAIN DATA ####
 
 testfamnames=famabundtest[,1]
 trainfamnames=colnames(train.data5)
@@ -321,7 +321,8 @@ View(df1)
 ## Subset df1 for only unique fam in test
 df2=df1[df1$testfamnames %in% uniquetestfam,]
 df2
-# Answer: 2 familes in test set ot present in train set (Laonidae (3) and Mimosellidae (2))
+# Answer: 2 familes in test set ot present in train set (Laonidae = Gastropod (3) and Mimosellidae = Bryozoan (2))
+# percentage 2/703=0.28%
 
 
 
@@ -373,7 +374,7 @@ testfamallt2[] <- lapply(testfamallt2, function(x) as.numeric(as.character(x)))
 names(testfamallt2)
 
 ############################
-## Create a copy of the data for trial use in Shiny app
+## Create a copy of the test data for trial use in Shiny app
 dim(testfamallt2)
 dim(test.raw2)
 names(test.raw2)
@@ -381,6 +382,7 @@ output=cbind(test.raw2[1],test.raw2[13536],test.raw2[13537],testfamallt2)
 names(output)
 write.csv(output,file = "OUTPUTS/ShinyTemplateCompleted.csv",row.names=FALSE)
 ##########################
+
 ## Create a blank template for use with R Shiny
 ShinyTemplate=testfamallt2[1,]
 ShinyTemplate[ShinyTemplate==""]<-0# change all values to zero
@@ -392,7 +394,7 @@ ShinyTemplate=ShinyTemplate[,c(704:706,1:703)]
 names(ShinyTemplate)
 write.csv(ShinyTemplate,file = "OUTPUTS/ShinyTemplate.csv",row.names=FALSE)
 
-## Transform the data
+## Transform the test data
 testfamallt3=testfamallt2^(0.25)
 
 ## Create a df 'pos.test' for Sample, Latitude_WGS84 and Longitude_WGS84. NB/You may need to update the colrefs for Lat and Long 
@@ -402,32 +404,6 @@ pos.test=test.raw2[,c(1,13536:13537)]
 ## Check names of df 'pos'
 names(pos.test)
 dim(pos.test)
-
-
-#### TEST DATA: GENERATE UNIVARIATE SUMMARY METRICS ####
-
-##Start with df for test faunal data
-View(testfamallt2)
-
-## Call library
-library(vegan)
-
-## Calculate univariate summary measures based on faunal abundance data in df 'data5'
-Richness = specnumber(testfamallt2) # Species Richness(S)
-Abundance=rowSums(testfamallt2) # Abundance
-## To calculate Pielou's eveness J first calculate the Shannon diversity H
-H <- diversity(testfamallt2)
-J <- H/log(specnumber(testfamallt2))
-
-univar=rbind(Richness,Abundance,J)
-univar_t=t(univar)
-#View(univar_t)
-univarfinal=cbind(pos.test,univar_t)
-#View(univarfinal)
-dim(pos.test)# same as df 'univarfinal'
-
-## Now save data
-write.csv(univarfinal,file = "OUTPUTS/testunivariateresults.csv",row.names=TRUE)
 
 
 #### TRAIN DATA: FAUNAL CLUSTER ANALYSIS ####
