@@ -296,6 +296,34 @@ pos=train.data4.5[,c(1,807:808)]
 ## Check names of df 'pos'
 names(pos)
 
+#### IDENTIFY FAMILiES PRESENT IN TEST DATA THAT ARE NOT FOUND IN TRAIN DATA ####
+
+testfamnames=famabundtest[,1]
+trainfamnames=colnames(train.data5)
+
+
+## Familes in common
+testfamnames[testfamnames %in% trainfamnames]
+
+## Families only in test
+uniquetestfam=testfamnames[!(testfamnames %in% trainfamnames)]
+uniquetestfam
+
+## Find out if any of the families unique to test set have abundance >0
+## Find number of familes (rows with total of >1)
+numfamtest=rowSums(famabundtest[,c(2:637)])
+sum(numfamtest > 0)# 311
+
+## Make df for test fam names and total abund (across all rows)
+df1=as.data.frame(cbind(testfamnames,numfamtest))
+View(df1)
+
+## Subset df1 for only unique fam in test
+df2=df1[df1$testfamnames %in% uniquetestfam,]
+df2
+# Answer: 2 familes in test set ot present in train set (Laonidae (3) and Mimosellidae (2))
+
+
 
 #### TEST DATA: DF WITH SAME FAMILIES AS TRAIN DATA ####
 
