@@ -7,8 +7,7 @@
 ## Ths script matches new faunal data to the existing cluster groups in Cooper and Barry (2017)
 
 ## Set working directory
-#setwd("Y:/C7331_Marine Aggregate Reg/Working_Area/C7331_E FAUNAL GROUP PREDICTION")
-setwd("Y:/C7912_Marine_Aggregate_Reg/Working_Area/C7331/C7331_E FAUNAL GROUP PREDICTION")
+setwd('C:/Users/kmc00/OneDrive - CEFAS/R_PROJECTS/BiotopePrediction')
 
 #### PREPARE MAPPING LAYERS ####
 
