@@ -132,11 +132,6 @@ names(test.raw2)
 dim(test.raw2)
 
 
-
-## Check col names have changed
-names(test.raw2)
-#View(test.raw2)
-
 ## Get Survey names
 test.raw2$SurveyName=as.factor(test.raw2$SurveyName)
 levels(test.raw2$SurveyName)
@@ -156,12 +151,12 @@ test.raw2$Survey[test.raw2$Survey == "Utopia2016"] <- "U"
 ## Make test.raw2$SurveyNameShort a factor
 test.raw2$Survey=as.factor(test.raw2$Survey)
 
-## Get number of samples by Survey
+## Get number of samples by Survey (Table 1)
 library(dplyr)
 count=test.raw2%>%group_by(SurveyName)%>%summarise(n=n(),maxLat=max(Latitude_WGS84),minLat=min(Latitude_WGS84),maxLon=max(Longitude_WGS84),minLon=min(Longitude_WGS84))
 View(count)
 
-## Find gear used for different surveys
+## Find gear used for different surveys (Table 1)
 names(test.raw2)
 View(test.raw2[,c(13669,13539,13540,13541)])
 
@@ -211,32 +206,7 @@ dim(famabundtest)# 774 families 441 cols
 
 ####  BRING IN TRAINING DATASET ####
 
-## Bring in training data from PostgreSQL. Note the training data are the baseline dataset from Cooper and Barry (2017). Just bring in manually at present as all col headers in lowercase in database
-
-## install.packages("RPostgreSQL")
-#require("RPostgreSQL")
-
-## create a connection. save the password that we can "hide" it as best as we can by collapsing it
-#pw <- {"postgres1234"}
-
-## loads the PostgreSQL driver
-#drv <- dbDriver("PostgreSQL")
-
-## creates a connection to the postgres database. note that "con" will be used later in each connection to the database
-#con <- dbConnect(drv, dbname = "RSMP",host = "localhost", port = 5433,user = "postgres", password = pw)
-#rm(pw) # removes the password
-
-## check for the cartable
-#dbExistsTable(con, "c5922datasetfam13022017")
-# TRUE
-
-#dbListTables(con)
-
-## query the data from postgreSQL 
-#train.data <- dbGetQuery(con, "SELECT * from c5922datasetfam13022017")
-
-
-## Alternatively read in data from file
+## Bring in training data file
 train.data=read.csv("DATA/C5922DATASETFAM13022017.csv", header=T,na.strings=c("NA", "-","?","<null>"),stringsAsFactors=F,check.names=FALSE)
 
 ## Remove 1st col
