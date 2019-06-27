@@ -28,33 +28,12 @@ library(methods)
 methods(class = "sf")
 install_github("edzer/rgdal2")
 library(devtools) # maybe install first?
----------------------------------------------------------------------------
-  ## Copy shapefile to database
-  pw <- {
-    "postgres1234"
-  }
-drv <- dbDriver("PostgreSQL")
-con =  dbConnect(drv, dbname = "RSMP", host = "localhost", port = 5433, user = "postgres", password = pw)
 
-
-
-fname <-  "P:/C7331_Marine Aggregate Reg/Working_Area/C7331_E FAUNAL GROUP PREDICTION/DATA/EUROPE.shp" 
-
-eu  <- st_read(fname)
-b = as.sf(eu)
-st_write_db(conn = con,obj = eu, table = 'europe_geography'   ) 
-
-##Recall sghapefil from database
-eu_sp <- st_read_db(con, query =  "select * from public.europe_geography" ) %>% as( "Spatial") 
---------------------------------------------------------------------------------------------
   
   ## Produce a high definition european coast map
   # Load shapefile
   eu <- readOGR("DATA","EUROPE")
 eu@data$id <- rownames(eu@data)
-
-
-
 
 ## Create a data.frame from our spatial object
 euDF <- fortify(eu, region = "id")
