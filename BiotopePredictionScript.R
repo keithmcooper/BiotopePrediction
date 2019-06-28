@@ -224,7 +224,7 @@ p2= ggplot()+
   geom_polygon(data=defra.dem.df, aes(x=long, y=lat, group=group,fill=Depth))+
   scale_fill_manual(values=grey,name="Depth (m)",guide=FALSE)+
   geom_point(data=faunal.cluster,aes(Longitude_WGS84,Latitude_WGS84,col=FaunalCluster),
-             size=0.45,show.legend = F)+
+             size=0.45,show.legend = T)+
   geom_polygon(data = euDF2, aes(x=long, y=lat, group = group),fill="white",colour="black",
                size=0.15)+
   scale_colour_manual(values = c("blue2","cyan1","#05aae1","plum2","darkorchid3","green3",
@@ -903,13 +903,55 @@ testloc= ggplot()+
 testloc1=testloc+theme(legend.key.size = unit(1, "cm"))+
   guides(colour = guide_legend(override.aes = list(size=6)))
 
-png("OUTPUTS/FIGURE 1.png",width = 29.7,height = 42,units = "cm", res = 600,
+png("OUTPUTS/FIGURE 1.png",width = 29.7,height = 40,units = "cm", res = 600,
     pointsize = 48)
 testloc1
 dev.off()
 
 
 #### TEST DATA: FAUNAL CLUSTER MAP ####
+
+## 1st create an inset map based on figure 2
+
+## Enter box coordinates 
+testarea=data.frame(x1=-8.4109440, x2=2.5646310,y1=49.73386, y2=53.81136,t=c('a'), r=c("A"))
+
+## Produce map
+inset= ggplot()+
+  geom_polygon(data=defra.dem.df, aes(x=long, y=lat, group=group,fill=Depth))+
+  scale_fill_manual(values=grey,name="Depth (m)",guide=FALSE)+
+  geom_point(data=faunal.cluster,aes(Longitude_WGS84,Latitude_WGS84,col=FaunalCluster),
+             size=0.1,show.legend = F)+
+  geom_polygon(data = euDF2, aes(x=long, y=lat, group = group),fill="white",colour="black",
+               size=0.07)+
+  scale_colour_manual(values = c("blue2","cyan1","#05aae1","plum2","darkorchid3","green3",
+                                 "palegreen1","#b40202","red1","darkorange","yellow",
+                                 "#b4b404"),name="Cluster")+
+  guides(colour = guide_legend(override.aes = list(size=3)))+ # Change size of legend dots
+  #bounding box
+  geom_rect(data=testarea, mapping=aes(xmin=x1, xmax=x2, ymin=y1, ymax=y2), color="black",alpha=0, linetype=1,size=0.5)+#
+  coord_map(xlim = c(-10.7, 4),ylim = c(48, 62))+ #set x,y limits of plot
+  theme_bw(base_size = 24)+ 
+  labs(x="Longitude",y="Latitude")+
+  theme(axis.title.y=element_blank(),axis.text.y=element_blank(),axis.title.x=element_blank() ,axis.text.x=element_blank())+
+#theme(axis.ticks = element_blank(),plot.margin = rep(unit(0,"null"),4))
+  theme(axis.ticks = element_blank(),plot.margin = margin(0,0,0,0,"cm"))+
+  theme(plot.background=element_rect(fill=NA, colour=NA))
+#
+
+inset2=inset+theme(legend.key.size = unit(1, "cm"))+
+  guides(colour = guide_legend(override.aes = list(size=6)))
+
+## Save plot to an image file (png or tiff)
+
+#tiff("OUTPUTS/FIGURE 4a.tiff",width = 29.7,height = 42,units = "cm",res = 600,pointsize = 48)
+inset2
+
+
+
+
+################
+
 
 ## Identify colours required for map below
 levels(faunal.cluster.test$FaunalCluster)#[1] "A1"  "A2a" "A2b" "C1a" "C1b" "D1"  "D2a" "D2b" "D2c" "D2d"
@@ -933,23 +975,24 @@ p3= ggplot()+
   geom_polygon(data=defra.dem.df, aes(x=long, y=lat, group=group,fill=Depth))+
   scale_fill_manual(values=grey,name="Depth (m)",guide=FALSE)+
   geom_point(data=faunal.cluster.test,aes(Longitude_WGS84,Latitude_WGS84,col=FaunalCluster),
-             size=0.7,show.legend = TRUE)+#size was 0.45,shape=3
+             size=0.8,show.legend = TRUE)+#size was 0.45,shape=3
   geom_polygon(data = euDF2, aes(x=long, y=lat, group = group),fill="white",colour="black",
                size=0.15)+
   scale_colour_manual(values = c("blue2","cyan1","#05aae1","green3",
                                  "palegreen1","#b40202","red1","darkorange","yellow",
                                  "#b4b404"),name="Cluster")+
   guides(colour = guide_legend(override.aes = list(size=3)))+ # Change size of legend dots
-  coord_map(xlim = c(-10.7, 4),ylim = c(48, 62))+ #set x,y limits of plot
+  coord_map(xlim = c(-8.4109440, 2.5646310),ylim = c(49.73386, 53.81136))+ #set x,y limits of plot
+  #coord_map(xlim = c(-10.7, 4),ylim = c(48, 62))+ #set x,y limits of plot
   #coord_map(xlim = c(0, 3),ylim = c(52.5, 54))+ #set x,y limits of plot 
   #coord_map(xlim = c(-1.5, -0.5),ylim = c(50.5, 51))+ #set x,y limits of plot#UTOPIA
-  theme_bw(base_size = 24)+
-  labs(x="Longitude",y="Latitude")+
-  theme(axis.title.y=element_blank(),axis.text.y=element_blank())#axis.title.x=element_blank() ,,axis.text.x=element_blank()
+  theme_bw(base_size = 18)+
+  labs(x="Longitude",y="Latitude")#+
+  #theme(axis.title.y=element_blank(),axis.text.y=element_blank())#axis.title.x=element_blank() ,,axis.text.x=element_blank()
 
 
-testmap=p3+theme(legend.key.size = unit(1, "cm"))+
-  guides(colour = guide_legend(override.aes = list(size=6)))
+testmap=p3+theme(legend.key.size = unit(0.75, "cm"))+
+  guides(colour = guide_legend(override.aes = list(size=5)))
 
 png("OUTPUTS/FIGURE test data with Utopia.png",width = 29.7,height = 42,units = "cm", res = 600,
     pointsize = 48)
@@ -957,6 +1000,18 @@ testmap
 dev.off()
 
 levels(faunal.cluster.test$FaunalCluster)
+
+## Plot Figure 3 for test sample faunal cluster groups with inset map for baseline data
+png(file="OUTPUTS/FIGURE 3.png",w=3300,h=1800, res=300) 
+grid.newpage() 
+#v1<-viewport(width = 1, height = 1, x = 0.5, y = 0.5) #plot area for the main map 
+v1<-viewport(width = 1, height = 1, x = 0.5, y = 0.5) #plot area for the main map 
+#v2<-viewport(width = 0.3, height = 0.3, x = 0.86, y = 0.28) #plot area for the inset map 
+v2<-viewport(width = 0.7, height = 0.6, x = 0.19, y = 0.665) #plot area for the inset map 
+
+print(testmap,vp=v1)  
+print(inset2,vp=v2) 
+dev.off() 
 
 
 #### TRAIN & TEST DATA: MAP OF FAUNAL CLUSTER DISTRIBUTION ####
