@@ -62,7 +62,361 @@ levels(defra.dem.df$Depth)
 grey=grey.colors(11, start = 0.95, end = 0.5,  alpha = NULL,gamma = 2.2)#, end=0.01
 
 
-#### GENERATE TEST DATA ####
+
+
+####  TRAIN DATA: LOAD ####
+
+## Bring in training data file
+train.data=read.csv("DATA/C5922DATASETFAM13022017.csv", header=T,na.strings=c("NA", "-","?","<null>"),stringsAsFactors=F,check.names=FALSE)
+
+## Remove 1st col
+train.data[1] <- NULL    
+
+## Check dataset dimensions
+dim(train.data)#33198 900
+
+## View dataset
+#View(train.data)
+
+## Change variable data types (factors required for plotting).
+train.data$Sieve = as.factor(train.data$Sieve)
+train.data$Year2 = as.factor(train.data$Year)
+train.data$Month = as.factor(train.data$Month)
+train.data$Source = as.factor(train.data$Source)
+train.data$Gear = as.factor(train.data$Gear)
+train.data$Data = as.factor(train.data$Data)
+
+## Number of Surveys
+length(rle(sort(train.data$Survey))$values)# 777
+
+## Number of samples by Survey
+table(train.data$Survey)
+
+
+#### TRAIN DATA: PREPARE ####
+
+## Prepare baseline data for faunal analysis - subset of comparable samples. This is Step 16 in Cooper & Barry (2017) R Script
+
+## Subset data by gear (all 0.1m2 grabs)
+train.data2 = subset(train.data, Gear=="MHN" | Gear=="DG" | Gear=="VV" | Gear=="SM")
+
+## Check dimensions of df 'data2'
+dim(train.data2)# 32044 901
+
+## subset by sieve size (1mm only)
+train.data3 = subset(train.data2, Sieve=='1')
+
+## Check dimensions of df 'train.data3'
+dim(train.data3)# 27622 901
+
+## Check names of df 'data3'to identify faunal data columns
+names(train.data3) # 2:775
+
+## Remove samples from the faunal data (df data3) where no fauna present
+train.data4 = train.data3[ rowSums(train.data3[,2:775])!=0, ]
+
+## Check dimensions of df 'data4'
+dim(train.data4)#27432 901
+
+## Identify (usinig the .csv file) variables with no abundance
+#write.csv(data4,file = "OUTPUTS/data4.csv",row.names=TRUE)
+
+## Remove variables with no abund (got list from csv file). There will be taxa
+# with no abund as some samples with taxa present have been deleted in gear step above  
+train.data4.5 <- train.data4[-c(4,21,32,40,47,57,100,153,157,167,172,175,177,200,204,207,213,237,246,
+                                252,283,294,313,325,362,376,379,381,410,413,414,417,418,426,428,430,446,
+                                448,459,460,469,474,485,486,489,505,508,509,528,556,558,575,578,598,601,
+                                603,605,607,630,633,638,647,675,687,705,709,726,734,760,765,775)]
+
+## Check dimensions of df 'data4.5'
+dim(train.data4.5)# 27432 830
+
+## Show names of df 'data4.5'
+names(train.data4.5)  
+
+## Faunal subset (ie remove Sample,Latitude_WGS84, Longitude_WGS84, month and year)
+train.data5=train.data4.5[,2:704]
+
+## Check dimensions of df 'data5'
+dim(train.data5) #27432 703
+
+## Check df 'data5' is just the faunal data
+names(train.data5)# it is
+
+## Change class of df data5 to a matrix
+data6=data.matrix(train.data5)
+
+## Create a df 'pos' for Sample, Latitude_WGS84 and Longitude_WGS84 
+pos=train.data4.5[,c(1,807:808)]
+
+## Check names of df 'pos'
+names(pos)
+
+#### TRAIN DATA: FAUNAL CLUSTER ANALYSIS ####
+
+## Steps 19 and 21 in Cooper & Barry (2017) R Script
+
+## Transform the data (fourth-root transformation)
+datat=data6^(0.25)
+dim(data6)
+## Perform Kmeans clusterinig of data. Results (cluster group) to the object 'results'
+set.seed(1234)
+results=kmeans(datat,12,algorithm="MacQueen",iter.max=100,nstart=25)
+
+## Save object 'resultsA' for use in Shiny app
+saveRDS(results, file = "OUTPUTS/results")
+
+
+#### TRAIN DATA: DF FOR FAUNAL CLUSTER MAPS ####
+
+## Step 23 in Cooper & Barry (2017) R Script
+
+## Add cluster group from kmeans results file to df 'pos' which includes 'Sample',
+# 'Latitude_WGS84' and 'Longitude_WGS84'
+faunal.cluster=cbind(pos,results$cluster)
+
+## Change name of col 'results$cluster' to 'ClusterNum'
+names(faunal.cluster)[4]<-paste("ClusterNum")
+
+## Add a new empty col 'FaunalCluster' to df 'faunal.cluster
+faunal.cluster["FaunalCluster"]=NA
+
+## Populate FaunalCluster col with new names (see dendrogram from Step 21)
+faunal.cluster$FaunalCluster[faunal.cluster$ClusterNum == 11] <- "A1"
+faunal.cluster$FaunalCluster[faunal.cluster$ClusterNum == 1]<- "A2a"
+faunal.cluster$FaunalCluster[faunal.cluster$ClusterNum == 8] <- "A2b"
+faunal.cluster$FaunalCluster[faunal.cluster$ClusterNum == 3]<- "B1a"
+faunal.cluster$FaunalCluster[faunal.cluster$ClusterNum == 7] <- "B1b"
+faunal.cluster$FaunalCluster[faunal.cluster$ClusterNum == 4] <- "C1a"
+faunal.cluster$FaunalCluster[faunal.cluster$ClusterNum == 5] <- "C1b"
+faunal.cluster$FaunalCluster[faunal.cluster$ClusterNum == 12] <- "D1"
+faunal.cluster$FaunalCluster[faunal.cluster$ClusterNum == 2] <- "D2a"
+faunal.cluster$FaunalCluster[faunal.cluster$ClusterNum == 10] <- "D2b"
+faunal.cluster$FaunalCluster[faunal.cluster$ClusterNum == 6] <- "D2c"
+faunal.cluster$FaunalCluster[faunal.cluster$ClusterNum == 9]<- "D2d"
+
+## Save baseline cluster output for use in Shiny
+#View(faunal.cluster)
+write.csv(faunal.cluster,file = "OUTPUTS/BaselineFunalCluster.csv",row.names=FALSE)
+
+#### TRAIN DATA: MAP OF FAUNAL CLUSTER DISTRIBUTION ####
+
+## Produce map
+p2= ggplot()+
+  geom_polygon(data=defra.dem.df, aes(x=long, y=lat, group=group,fill=Depth))+
+  scale_fill_manual(values=grey,name="Depth (m)",guide=FALSE)+
+  geom_point(data=faunal.cluster,aes(Longitude_WGS84,Latitude_WGS84,col=FaunalCluster),
+             size=0.45,show.legend = F)+
+  geom_polygon(data = euDF2, aes(x=long, y=lat, group = group),fill="white",colour="black",
+               size=0.15)+
+  scale_colour_manual(values = c("blue2","cyan1","#05aae1","plum2","darkorchid3","green3",
+                                 "palegreen1","#b40202","red1","darkorange","yellow",
+                                 "#b4b404"),name="Cluster")+
+  guides(colour = guide_legend(override.aes = list(size=3)))+ # Change size of legend dots
+  coord_map(xlim = c(-10.7, 4),ylim = c(48, 62))+ #set x,y limits of plot
+  theme_bw(base_size = 24)+ 
+  labs(x="Longitude",y="Latitude")
+
+fig4a=p2+theme(legend.key.size = unit(1, "cm"))+
+  guides(colour = guide_legend(override.aes = list(size=6)))
+
+## Save plot to an image file (png or tiff)
+png("OUTPUTS/FIGURE C5922 FAUNAL CLUSTERS.png",width = 29.7,height = 42,units = "cm", res = 600,
+    pointsize = 48)
+#tiff("OUTPUTS/FIGURE 4a.tiff",width = 29.7,height = 42,units = "cm",res = 600,pointsize = 48)
+fig4a
+dev.off()
+
+## Save legend for use in Figure 7
+legendfclus <- get_legend(p2 + theme_bw(base_size=24)+ guides(colour = guide_legend(override.aes = list(size=8))))
+plot(legendfclus)
+
+#### TRAIN DATA: DISTANCE TO CLUSTER CENTRES ####
+
+## Find distances to cluster centre
+#see https://stackoverflow.com/questions/44137906/r-data-output-ordered-by-distance-from-cluster-center
+DistancesToCentersp1 <- as.matrix(dist(rbind(results$centers, datat[1:5000,])))[-(1:12),1:12]
+DistancesToCentersp2 <- as.matrix(dist(rbind(results$centers, datat[5001:10000,])))[-(1:12),1:12]
+DistancesToCentersp3 <- as.matrix(dist(rbind(results$centers, datat[10001:15000,])))[-(1:12),1:12]
+DistancesToCentersp4 <- as.matrix(dist(rbind(results$centers, datat[15001:20000,])))[-(1:12),1:12]
+DistancesToCentersp5 <- as.matrix(dist(rbind(results$centers, datat[20001:25000,])))[-(1:12),1:12]
+DistancesToCentersp6 <- as.matrix(dist(rbind(results$centers, datat[25001:27432,])))[-(1:12),1:12]
+
+## Bring results together
+DistancesToCentersAll=rbind(DistancesToCentersp1,DistancesToCentersp2,DistancesToCentersp3,DistancesToCentersp4,DistancesToCentersp5,DistancesToCentersp6)
+
+## Add Sample column
+#names(pos)
+DistancetoCentersTrain=cbind(pos$Sample,DistancesToCentersAll)
+#View(DistancetoCentersTrain)
+
+## Update column names
+colnames(DistancetoCentersTrain)=c("Sample","A2a","D2a","B1a","C1a","C1b","D2c","B1b","A2b","D2d","D2b","A1","D1")
+
+## Change column order
+DistancetoCentersTrain=DistancetoCentersTrain[,c(1,12,2,9,4,8,5,6,13,3,11,7,10)]
+#View(DistancetoCentersTrain)
+
+## Add Survey column
+trainsurveynames=train.data4.5[,806]# get Survey names
+DistancetoCentersTrain2=cbind(trainsurveynames,DistancetoCentersTrain)
+colnames(DistancetoCentersTrain2)[1]="Survey"
+#View(DistancetoCentersTrain2)
+
+## Add in Faunal cluster group (1st need to create object 'faunal.cluster' - see below)
+DistancetoCentersTrain3=cbind(DistancetoCentersTrain2[,1:2],faunal.cluster$FaunalCluster,DistancetoCentersTrain2[,3:14])
+colnames(DistancetoCentersTrain3)[3] <- "FaunalCluster"
+#View(DistancetoCentersTrain3)
+
+## Change object 'DistancetoCentersTrain3' from matrix to dataframe
+class(DistancetoCentersTrain3) # matrix
+DistancetoCentersTrain3=as.data.frame(DistancetoCentersTrain3)
+
+## Add in Phy cluster group from object 'train.phy.output' which inc Sample and PhyCluster
+DistancetoCentersTrain3$PhyCluster=NA
+DistancetoCentersTrain4 <-merge(DistancetoCentersTrain3, train.phy.output, by="Sample")
+DistancetoCentersTrain5=DistancetoCentersTrain4[,c(2,1,3,19,4:15)]
+names(DistancetoCentersTrain5)=c("Survey","Sample","FaunalCluster","PhyCluster","A1","A2a","A2b","B1a","B1b" ,"C1a" ,"C1b","D1","D2a","D2b","D2c","D2d")
+#View(DistancetoCentersTrain5)
+
+DistancetoCentersTrain5=DistancetoCentersTrain3
+
+## Change column format
+DistancetoCentersTrain5$Survey <- as.character(as.character(DistancetoCentersTrain5$Survey))
+DistancetoCentersTrain5$Sample <- as.character(as.character(DistancetoCentersTrain5$Sample))
+DistancetoCentersTrain5$FaunalCluster <- as.character(as.character(DistancetoCentersTrain5$FaunalCluster))
+DistancetoCentersTrain5$PhyCluster <- as.character(as.character(DistancetoCentersTrain5$PhyCluster))
+DistancetoCentersTrain5$A1 <- as.numeric(as.character(DistancetoCentersTrain5$A1))
+DistancetoCentersTrain5$A2a <- as.numeric(as.character(DistancetoCentersTrain5$A2a))
+DistancetoCentersTrain5$A2b <- as.numeric(as.character(DistancetoCentersTrain5$A2b))
+DistancetoCentersTrain5$B1a <- as.numeric(as.character(DistancetoCentersTrain5$B1a))
+DistancetoCentersTrain5$B1b <- as.numeric(as.character(DistancetoCentersTrain5$B1b))
+DistancetoCentersTrain5$C1a <- as.numeric(as.character(DistancetoCentersTrain5$C1a))
+DistancetoCentersTrain5$C1b <- as.numeric(as.character(DistancetoCentersTrain5$C1b))
+DistancetoCentersTrain5$D1 <- as.numeric(as.character(DistancetoCentersTrain5$D1))
+DistancetoCentersTrain5$D2a <- as.numeric(as.character(DistancetoCentersTrain5$D2a))
+DistancetoCentersTrain5$D2b <- as.numeric(as.character(DistancetoCentersTrain5$D2b))
+DistancetoCentersTrain5$D2c <- as.numeric(as.character(DistancetoCentersTrain5$D2c))
+DistancetoCentersTrain5$D2d <- as.numeric(as.character(DistancetoCentersTrain5$D2d))
+
+## Create subsets of the data by cluster group 
+A1dist=subset(DistancetoCentersTrain5, FaunalCluster=="A1")
+A2adist=subset(DistancetoCentersTrain5, FaunalCluster=="A2a")
+A2bdist=subset(DistancetoCentersTrain5, FaunalCluster=="A2b")
+B1adist=subset(DistancetoCentersTrain5, FaunalCluster=="B1a")
+B1bdist=subset(DistancetoCentersTrain5, FaunalCluster=="B1b")
+C1adist=subset(DistancetoCentersTrain5, FaunalCluster=="C1a")
+C1bdist=subset(DistancetoCentersTrain5, FaunalCluster=="C1b")
+D1dist=subset(DistancetoCentersTrain5, FaunalCluster=="D1")
+D2adist=subset(DistancetoCentersTrain5, FaunalCluster=="D2a")
+D2bdist=subset(DistancetoCentersTrain5, FaunalCluster=="D2b")
+D2cdist=subset(DistancetoCentersTrain5, FaunalCluster=="D2c")
+D2ddist=subset(DistancetoCentersTrain5, FaunalCluster=="D2d")
+
+
+## Take only relevant columns for later calculation of mean and sd (change these nos if inc phy clus grp)
+A1dist=A1dist[,1:4]
+A2adist=A2adist[,c(1:3,5)]
+A2bdist=A2bdist[,c(1:3,6)]
+B1adist=B1adist[,c(1:3,7)]
+B1bdist=B1bdist[,c(1:3,8)]
+C1adist=C1adist[,c(1:3,9)]
+C1bdist=C1bdist[,c(1:3,10)]
+D1dist=D1dist[,c(1:3,11)]
+D2adist=D2adist[,c(1:3,12)]
+D2bdist=D2bdist[,c(1:3,13)]
+D2cdist=D2cdist[,c(1:3,14)]
+D2ddist=D2ddist[,c(1:3,15)]
+
+## Get mean and sd
+meanA1dist=mean(A1dist$A1)
+sdA1dist=sqrt(var(A1dist$A1))
+
+meanA2adist=mean(A2adist$A2a)
+sdA2adist=sqrt(var(A2adist$A2a))
+
+meanA2bdist=mean(A2bdist$A2b)
+sdA2bdist=sqrt(var(A2bdist$A2b))
+
+meanB1adist=mean(B1adist$B1a)
+sdB1adist=sqrt(var(B1adist$B1a))
+
+meanB1bdist=mean(B1bdist$B1b)
+sdB1bdist=sqrt(var(B1bdist$B1b))
+
+meanC1adist=mean(C1adist$C1a)
+sdC1adist=sqrt(var(C1adist$C1a))
+
+meanC1bdist=mean(C1bdist$C1b)
+sdC1bdist=sqrt(var(C1bdist$C1b))
+
+meanD1dist=mean(D1dist$D1)
+sdD1dist=sqrt(var(D1dist$D1))
+
+meanD2adist=mean(D2adist$D2a)
+sdD2adist=sqrt(var(D2adist$D2a))
+
+meanD2bdist=mean(D2bdist$D2b)
+sdD2bdist=sqrt(var(D2bdist$D2b))
+
+meanD2cdist=mean(D2cdist$D2c)
+sdD2cdist=sqrt(var(D2cdist$D2c))
+
+meanD2ddist=mean(D2ddist$D2d)
+sdD2ddist=sqrt(var(D2ddist$D2d))
+
+## Create a copy of the data 'DistancetoCentersTrain5'
+DistancetoCentersTrain6=DistancetoCentersTrain5
+
+## Calculate z-scores
+DistancetoCentersTrain6$zA1=(DistancetoCentersTrain6$A1-meanA1dist)/sdA1dist
+DistancetoCentersTrain6$zA2a=(DistancetoCentersTrain6$A2a-meanA2adist)/sdA2adist
+DistancetoCentersTrain6$zA2b=(DistancetoCentersTrain6$A2b-meanA2bdist)/sdA2bdist
+DistancetoCentersTrain6$zB1a=(DistancetoCentersTrain6$B1a-meanB1adist)/sdB1adist
+DistancetoCentersTrain6$zB1b=(DistancetoCentersTrain6$B1b-meanB1bdist)/sdB1bdist
+DistancetoCentersTrain6$zC1a=(DistancetoCentersTrain6$C1a-meanC1adist)/sdC1adist
+DistancetoCentersTrain6$zC1b=(DistancetoCentersTrain6$C1b-meanC1bdist)/sdC1bdist
+DistancetoCentersTrain6$zD1=(DistancetoCentersTrain6$D1-meanD1dist)/sdD1dist
+DistancetoCentersTrain6$zD2a=(DistancetoCentersTrain6$D2a-meanD2adist)/sdD2adist
+DistancetoCentersTrain6$zD2b=(DistancetoCentersTrain6$D2b-meanD2bdist)/sdD2bdist
+DistancetoCentersTrain6$zD2c=(DistancetoCentersTrain6$D2c-meanD2cdist)/sdD2cdist
+DistancetoCentersTrain6$zD2d=(DistancetoCentersTrain6$D2d-meanD2ddist)/sdD2ddist
+#View(DistancetoCentersTrain6)
+
+## Calculate z-scores percentiles
+DistancetoCentersTrain6$pA1=round(pnorm(DistancetoCentersTrain6$zA1)*100,1)
+DistancetoCentersTrain6$pA2a=round(pnorm(DistancetoCentersTrain6$zA2a)*100,1)
+DistancetoCentersTrain6$pA2b=round(pnorm(DistancetoCentersTrain6$zA2b)*100,1)
+DistancetoCentersTrain6$pB1a=round(pnorm(DistancetoCentersTrain6$zB1a)*100,1)
+DistancetoCentersTrain6$pB1b=round(pnorm(DistancetoCentersTrain6$zB1b)*100,1)
+DistancetoCentersTrain6$pC1a=round(pnorm(DistancetoCentersTrain6$zC1a)*100,1)
+DistancetoCentersTrain6$pC1b=round(pnorm(DistancetoCentersTrain6$zC1b)*100,1)
+DistancetoCentersTrain6$pD1=round(pnorm(DistancetoCentersTrain6$zD1)*100,1)
+DistancetoCentersTrain6$pD2a=round(pnorm(DistancetoCentersTrain6$zD2a)*100,1)
+DistancetoCentersTrain6$pD2b=round(pnorm(DistancetoCentersTrain6$zD2b)*100,1)
+DistancetoCentersTrain6$pD2c=round(pnorm(DistancetoCentersTrain6$zD2c)*100,1)
+DistancetoCentersTrain6$pD2d=round(pnorm(DistancetoCentersTrain6$zD2d)*100,1)
+
+## Select only samples belonging to chosen cluster and produce histogram
+#D2cclusdist=DistancetoCentersTrain6[ which(DistancetoCentersTrain6$FaunalCluster=='D2c'& DistancetoCentersTrain6$PhyCluster==1 ),]
+D2cclusdist=DistancetoCentersTrain6[ which(DistancetoCentersTrain6$FaunalCluster=='D2c'),]
+hist(D2cclusdist$zD2c,breaks=40)
+
+## Create a csv for train sample distance/zscore/percentile for use in shiny app. 
+View(DistancetoCentersTrain6)
+write.csv(DistancetoCentersTrain6,file = "OUTPUTS/DistancetoCentersTrain6.csv",row.names=F)
+
+## Select stations from survey
+#NWJBCentres=DistancetoCentersTrain6[ which(DistancetoCentersTrain6$Survey=='North West Jones Bank_MCZ_infauna'& DistancetoCentersTrain6$FaunalCluster=='D2c'),] 
+NWJBCentres=DistancetoCentersTrain6[ which(DistancetoCentersTrain6$Survey=='North West Jones Bank_MCZ_infauna'),] 
+#View(NWJBCentres)
+write.csv(NWJBCentres,file = "OUTPUTS/NWJBCentres.csv",row.names=F)
+
+
+
+
+
+#### TEST DATA: GENERATE ####
 
 ## Enter new dataset into PRIMER PART C (see subfolder: data)
 
@@ -208,95 +562,8 @@ sum(numfamtest > 0)# 311
 
 
 
-####  BRING IN TRAINING DATASET ####
 
-## Bring in training data file
-train.data=read.csv("DATA/C5922DATASETFAM13022017.csv", header=T,na.strings=c("NA", "-","?","<null>"),stringsAsFactors=F,check.names=FALSE)
-
-## Remove 1st col
-train.data[1] <- NULL    
-
-## Check dataset dimensions
-dim(train.data)#33198 900
-
-## View dataset
-#View(train.data)
-
-## Change variable data types (factors required for plotting).
-train.data$Sieve = as.factor(train.data$Sieve)
-train.data$Year2 = as.factor(train.data$Year)
-train.data$Month = as.factor(train.data$Month)
-train.data$Source = as.factor(train.data$Source)
-train.data$Gear = as.factor(train.data$Gear)
-train.data$Data = as.factor(train.data$Data)
-
-## Number of Surveys
-length(rle(sort(train.data$Survey))$values)# 777
-
-## Number of samples by Survey
-table(train.data$Survey)
-
-
-#### PREPARE TRAINING DATASET ####
-
-## Prepare baseline data for faunal analysis - subset of comparable samples. This is Step 16 in Cooper & Barry (2017) R Script
-
-## Subset data by gear (all 0.1m2 grabs)
-train.data2 = subset(train.data, Gear=="MHN" | Gear=="DG" | Gear=="VV" | Gear=="SM")
-
-## Check dimensions of df 'data2'
-dim(train.data2)# 32044 901
-
-## subset by sieve size (1mm only)
-train.data3 = subset(train.data2, Sieve=='1')
-
-## Check dimensions of df 'train.data3'
-dim(train.data3)# 27622 901
-
-## Check names of df 'data3'to identify faunal data columns
-names(train.data3) # 2:775
-
-## Remove samples from the faunal data (df data3) where no fauna present
-train.data4 = train.data3[ rowSums(train.data3[,2:775])!=0, ]
-
-## Check dimensions of df 'data4'
-dim(train.data4)#27432 901
-
-## Identify (usinig the .csv file) variables with no abundance
-#write.csv(data4,file = "OUTPUTS/data4.csv",row.names=TRUE)
-
-## Remove variables with no abund (got list from csv file). There will be taxa
-# with no abund as some samples with taxa present have been deleted in gear step above  
-train.data4.5 <- train.data4[-c(4,21,32,40,47,57,100,153,157,167,172,175,177,200,204,207,213,237,246,
-                                252,283,294,313,325,362,376,379,381,410,413,414,417,418,426,428,430,446,
-                                448,459,460,469,474,485,486,489,505,508,509,528,556,558,575,578,598,601,
-                                603,605,607,630,633,638,647,675,687,705,709,726,734,760,765,775)]
-
-## Check dimensions of df 'data4.5'
-dim(train.data4.5)# 27432 830
-
-## Show names of df 'data4.5'
-names(train.data4.5)  
-
-## Faunal subset (ie remove Sample,Latitude_WGS84, Longitude_WGS84, month and year)
-train.data5=train.data4.5[,2:704]
-
-## Check dimensions of df 'data5'
-dim(train.data5) #27432 703
-
-## Check df 'data5' is just the faunal data
-names(train.data5)# it is
-
-## Change class of df data5 to a matrix
-data6=data.matrix(train.data5)
-
-## Create a df 'pos' for Sample, Latitude_WGS84 and Longitude_WGS84 
-pos=train.data4.5[,c(1,807:808)]
-
-## Check names of df 'pos'
-names(pos)
-
-#### IDENTIFY FAMILIES PRESENT IN TEST DATA THAT ARE NOT FOUND IN TRAIN DATA ####
+#### TEST DATA: IDENTIFY FAMILIES NOT PRESENT IN TRAIN DATA ####
 
 testfamnames=famabundtest[,1]
 trainfamnames=colnames(train.data5)
@@ -373,7 +640,7 @@ testfamallt2[] <- lapply(testfamallt2, function(x) as.numeric(as.character(x)))
 #str(testfamallt2)
 names(testfamallt2)
 
-############################
+
 ## Create a copy of the test data for trial use in Shiny app
 dim(testfamallt2)
 dim(test.raw2)
@@ -381,7 +648,7 @@ names(test.raw2)
 output=cbind(test.raw2[1],test.raw2[13536],test.raw2[13537],testfamallt2)
 names(output)
 write.csv(output,file = "OUTPUTS/ShinyTemplateCompleted.csv",row.names=FALSE)
-##########################
+
 
 ## Create a blank template for use with R Shiny
 ShinyTemplate=testfamallt2[1,]
@@ -406,265 +673,10 @@ names(pos.test)
 dim(pos.test)
 
 
-#### TRAIN DATA: FAUNAL CLUSTER ANALYSIS ####
-
-## Steps 19 and 21 in Cooper & Barry (2017) R Script
-
-## Transform the data (fourth-root transformation)
-datat=data6^(0.25)
-
-## Perform Kmeans clusterinig of data. Results (cluster group) to the object 'results'
-set.seed(1234)
-results=kmeans(datat,12,algorithm="MacQueen",iter.max=100,nstart=25)
-
-## Save object 'resultsA' for use in Shiny app
-saveRDS(results, file = "OUTPUTS/results")
-
-#### TRAIN DATA: DISTANCE TO CLUSTER CENTRES ####
-
-## Find distances to cluster centre
-#see https://stackoverflow.com/questions/44137906/r-data-output-ordered-by-distance-from-cluster-center
-DistancesToCentersp1 <- as.matrix(dist(rbind(results$centers, datat[1:5000,])))[-(1:12),1:12]
-DistancesToCentersp2 <- as.matrix(dist(rbind(results$centers, datat[5001:10000,])))[-(1:12),1:12]
-DistancesToCentersp3 <- as.matrix(dist(rbind(results$centers, datat[10001:15000,])))[-(1:12),1:12]
-DistancesToCentersp4 <- as.matrix(dist(rbind(results$centers, datat[15001:20000,])))[-(1:12),1:12]
-DistancesToCentersp5 <- as.matrix(dist(rbind(results$centers, datat[20001:25000,])))[-(1:12),1:12]
-DistancesToCentersp6 <- as.matrix(dist(rbind(results$centers, datat[25001:27432,])))[-(1:12),1:12]
-
-## Bring results together
-DistancesToCentersAll=rbind(DistancesToCentersp1,DistancesToCentersp2,DistancesToCentersp3,DistancesToCentersp4,DistancesToCentersp5,DistancesToCentersp6)
-
-## Add Sample column
-#names(pos)
-DistancetoCentersTrain=cbind(pos$Sample,DistancesToCentersAll)
-#View(DistancetoCentersTrain)
-
-## Update column names
-colnames(DistancetoCentersTrain)=c("Sample","A2a","D2a","B1a","C1a","C1b","D2c","B1b","A2b","D2d","D2b","A1","D1")
-
-## Change column order
-DistancetoCentersTrain=DistancetoCentersTrain[,c(1,12,2,9,4,8,5,6,13,3,11,7,10)]
-#View(DistancetoCentersTrain)
-
-## Add Survey column
-trainsurveynames=train.data4.5[,806]# get Survey names
-DistancetoCentersTrain2=cbind(trainsurveynames,DistancetoCentersTrain)
-colnames(DistancetoCentersTrain2)[1]="Survey"
-#View(DistancetoCentersTrain2)
-
-## Add in Faunal cluster group (1st need to create object 'faunal.cluster' - see below)
-DistancetoCentersTrain3=cbind(DistancetoCentersTrain2[,1:2],faunal.cluster$FaunalCluster,DistancetoCentersTrain2[,3:14])
-colnames(DistancetoCentersTrain3)[3] <- "FaunalCluster"
-#View(DistancetoCentersTrain3)
-
-## Change object 'DistancetoCentersTrain3' from matrix to dataframe
-class(DistancetoCentersTrain3) # matrix
-DistancetoCentersTrain3=as.data.frame(DistancetoCentersTrain3)
-
-## Add in Phy cluster group from object 'train.phy.output' which inc Sample and PhyCluster
-DistancetoCentersTrain3$PhyCluster=NA
-DistancetoCentersTrain4 <-merge(DistancetoCentersTrain3, train.phy.output, by="Sample")
-DistancetoCentersTrain5=DistancetoCentersTrain4[,c(2,1,3,19,4:15)]
-names(DistancetoCentersTrain5)=c("Survey","Sample","FaunalCluster","PhyCluster","A1","A2a","A2b","B1a","B1b" ,"C1a" ,"C1b","D1","D2a","D2b","D2c","D2d")
-#View(DistancetoCentersTrain5)
-###############
-DistancetoCentersTrain5=DistancetoCentersTrain3
-#############
-## Change column format
-DistancetoCentersTrain5$Survey <- as.character(as.character(DistancetoCentersTrain5$Survey))
-DistancetoCentersTrain5$Sample <- as.character(as.character(DistancetoCentersTrain5$Sample))
-DistancetoCentersTrain5$FaunalCluster <- as.character(as.character(DistancetoCentersTrain5$FaunalCluster))
-DistancetoCentersTrain5$PhyCluster <- as.character(as.character(DistancetoCentersTrain5$PhyCluster))
-DistancetoCentersTrain5$A1 <- as.numeric(as.character(DistancetoCentersTrain5$A1))
-DistancetoCentersTrain5$A2a <- as.numeric(as.character(DistancetoCentersTrain5$A2a))
-DistancetoCentersTrain5$A2b <- as.numeric(as.character(DistancetoCentersTrain5$A2b))
-DistancetoCentersTrain5$B1a <- as.numeric(as.character(DistancetoCentersTrain5$B1a))
-DistancetoCentersTrain5$B1b <- as.numeric(as.character(DistancetoCentersTrain5$B1b))
-DistancetoCentersTrain5$C1a <- as.numeric(as.character(DistancetoCentersTrain5$C1a))
-DistancetoCentersTrain5$C1b <- as.numeric(as.character(DistancetoCentersTrain5$C1b))
-DistancetoCentersTrain5$D1 <- as.numeric(as.character(DistancetoCentersTrain5$D1))
-DistancetoCentersTrain5$D2a <- as.numeric(as.character(DistancetoCentersTrain5$D2a))
-DistancetoCentersTrain5$D2b <- as.numeric(as.character(DistancetoCentersTrain5$D2b))
-DistancetoCentersTrain5$D2c <- as.numeric(as.character(DistancetoCentersTrain5$D2c))
-DistancetoCentersTrain5$D2d <- as.numeric(as.character(DistancetoCentersTrain5$D2d))
-
-## Create subsets of the data by cluster group 
-A1dist=subset(DistancetoCentersTrain5, FaunalCluster=="A1")
-A2adist=subset(DistancetoCentersTrain5, FaunalCluster=="A2a")
-A2bdist=subset(DistancetoCentersTrain5, FaunalCluster=="A2b")
-B1adist=subset(DistancetoCentersTrain5, FaunalCluster=="B1a")
-B1bdist=subset(DistancetoCentersTrain5, FaunalCluster=="B1b")
-C1adist=subset(DistancetoCentersTrain5, FaunalCluster=="C1a")
-C1bdist=subset(DistancetoCentersTrain5, FaunalCluster=="C1b")
-D1dist=subset(DistancetoCentersTrain5, FaunalCluster=="D1")
-D2adist=subset(DistancetoCentersTrain5, FaunalCluster=="D2a")
-D2bdist=subset(DistancetoCentersTrain5, FaunalCluster=="D2b")
-D2cdist=subset(DistancetoCentersTrain5, FaunalCluster=="D2c")
-D2ddist=subset(DistancetoCentersTrain5, FaunalCluster=="D2d")
 
 
-## Take only relevant columns for later calculation of mean and sd (change these nos if inc phy clus grp)
-A1dist=A1dist[,1:4]
-A2adist=A2adist[,c(1:3,5)]
-A2bdist=A2bdist[,c(1:3,6)]
-B1adist=B1adist[,c(1:3,7)]
-B1bdist=B1bdist[,c(1:3,8)]
-C1adist=C1adist[,c(1:3,9)]
-C1bdist=C1bdist[,c(1:3,10)]
-D1dist=D1dist[,c(1:3,11)]
-D2adist=D2adist[,c(1:3,12)]
-D2bdist=D2bdist[,c(1:3,13)]
-D2cdist=D2cdist[,c(1:3,14)]
-D2ddist=D2ddist[,c(1:3,15)]
-
-## Get mean and sd
-meanA1dist=mean(A1dist$A1)
-sdA1dist=sqrt(var(A1dist$A1))
-
-meanA2adist=mean(A2adist$A2a)
-sdA2adist=sqrt(var(A2adist$A2a))
-
-meanA2bdist=mean(A2bdist$A2b)
-sdA2bdist=sqrt(var(A2bdist$A2b))
-
-meanB1adist=mean(B1adist$B1a)
-sdB1adist=sqrt(var(B1adist$B1a))
-
-meanB1bdist=mean(B1bdist$B1b)
-sdB1bdist=sqrt(var(B1bdist$B1b))
-
-meanC1adist=mean(C1adist$C1a)
-sdC1adist=sqrt(var(C1adist$C1a))
-
-meanC1bdist=mean(C1bdist$C1b)
-sdC1bdist=sqrt(var(C1bdist$C1b))
-
-meanD1dist=mean(D1dist$D1)
-sdD1dist=sqrt(var(D1dist$D1))
-
-meanD2adist=mean(D2adist$D2a)
-sdD2adist=sqrt(var(D2adist$D2a))
-
-meanD2bdist=mean(D2bdist$D2b)
-sdD2bdist=sqrt(var(D2bdist$D2b))
-
-meanD2cdist=mean(D2cdist$D2c)
-sdD2cdist=sqrt(var(D2cdist$D2c))
-
-meanD2ddist=mean(D2ddist$D2d)
-sdD2ddist=sqrt(var(D2ddist$D2d))
-
-## Create a copy of the data 'DistancetoCentersTrain5'
-DistancetoCentersTrain6=DistancetoCentersTrain5
-
-## Calculate z-scores
-DistancetoCentersTrain6$zA1=(DistancetoCentersTrain6$A1-meanA1dist)/sdA1dist
-DistancetoCentersTrain6$zA2a=(DistancetoCentersTrain6$A2a-meanA2adist)/sdA2adist
-DistancetoCentersTrain6$zA2b=(DistancetoCentersTrain6$A2b-meanA2bdist)/sdA2bdist
-DistancetoCentersTrain6$zB1a=(DistancetoCentersTrain6$B1a-meanB1adist)/sdB1adist
-DistancetoCentersTrain6$zB1b=(DistancetoCentersTrain6$B1b-meanB1bdist)/sdB1bdist
-DistancetoCentersTrain6$zC1a=(DistancetoCentersTrain6$C1a-meanC1adist)/sdC1adist
-DistancetoCentersTrain6$zC1b=(DistancetoCentersTrain6$C1b-meanC1bdist)/sdC1bdist
-DistancetoCentersTrain6$zD1=(DistancetoCentersTrain6$D1-meanD1dist)/sdD1dist
-DistancetoCentersTrain6$zD2a=(DistancetoCentersTrain6$D2a-meanD2adist)/sdD2adist
-DistancetoCentersTrain6$zD2b=(DistancetoCentersTrain6$D2b-meanD2bdist)/sdD2bdist
-DistancetoCentersTrain6$zD2c=(DistancetoCentersTrain6$D2c-meanD2cdist)/sdD2cdist
-DistancetoCentersTrain6$zD2d=(DistancetoCentersTrain6$D2d-meanD2ddist)/sdD2ddist
-#View(DistancetoCentersTrain6)
-
-## Calculate z-scores percentiles
-DistancetoCentersTrain6$pA1=round(pnorm(DistancetoCentersTrain6$zA1)*100,1)
-DistancetoCentersTrain6$pA2a=round(pnorm(DistancetoCentersTrain6$zA2a)*100,1)
-DistancetoCentersTrain6$pA2b=round(pnorm(DistancetoCentersTrain6$zA2b)*100,1)
-DistancetoCentersTrain6$pB1a=round(pnorm(DistancetoCentersTrain6$zB1a)*100,1)
-DistancetoCentersTrain6$pB1b=round(pnorm(DistancetoCentersTrain6$zB1b)*100,1)
-DistancetoCentersTrain6$pC1a=round(pnorm(DistancetoCentersTrain6$zC1a)*100,1)
-DistancetoCentersTrain6$pC1b=round(pnorm(DistancetoCentersTrain6$zC1b)*100,1)
-DistancetoCentersTrain6$pD1=round(pnorm(DistancetoCentersTrain6$zD1)*100,1)
-DistancetoCentersTrain6$pD2a=round(pnorm(DistancetoCentersTrain6$zD2a)*100,1)
-DistancetoCentersTrain6$pD2b=round(pnorm(DistancetoCentersTrain6$zD2b)*100,1)
-DistancetoCentersTrain6$pD2c=round(pnorm(DistancetoCentersTrain6$zD2c)*100,1)
-DistancetoCentersTrain6$pD2d=round(pnorm(DistancetoCentersTrain6$zD2d)*100,1)
-
-## Select only samples belonging to chosen cluster and produce histogram
-#D2cclusdist=DistancetoCentersTrain6[ which(DistancetoCentersTrain6$FaunalCluster=='D2c'& DistancetoCentersTrain6$PhyCluster==1 ),]
-D2cclusdist=DistancetoCentersTrain6[ which(DistancetoCentersTrain6$FaunalCluster=='D2c'),]
-hist(D2cclusdist$zD2c,breaks=40)
-
-## Create a csv for train sample distance/zscore/percentile for use in shiny app. 
-View(DistancetoCentersTrain6)
-write.csv(DistancetoCentersTrain6,file = "OUTPUTS/DistancetoCentersTrain6.csv",row.names=F)
-
-## Select stations from survey
-#NWJBCentres=DistancetoCentersTrain6[ which(DistancetoCentersTrain6$Survey=='North West Jones Bank_MCZ_infauna'& DistancetoCentersTrain6$FaunalCluster=='D2c'),] 
-NWJBCentres=DistancetoCentersTrain6[ which(DistancetoCentersTrain6$Survey=='North West Jones Bank_MCZ_infauna'),] 
-#View(NWJBCentres)
-write.csv(NWJBCentres,file = "OUTPUTS/NWJBCentres.csv",row.names=F)
 
 
-#### TRAIN DATA: DF FOR FAUNAL CLUSTER MAPS ####
-
-## Step 23 in Cooper & Barry (2017) R Script
-
-## Add cluster group from kmeans results file to df 'pos' which includes 'Sample',
-# 'Latitude_WGS84' and 'Longitude_WGS84'
-faunal.cluster=cbind(pos,results$cluster)
-
-## Change name of col 'results$cluster' to 'ClusterNum'
-names(faunal.cluster)[4]<-paste("ClusterNum")
-
-## Add a new empty col 'FaunalCluster' to df 'faunal.cluster
-faunal.cluster["FaunalCluster"]=NA
-
-## Populate FaunalCluster col with new names (see dendrogram from Step 21)
-faunal.cluster$FaunalCluster[faunal.cluster$ClusterNum == 11] <- "A1"
-faunal.cluster$FaunalCluster[faunal.cluster$ClusterNum == 1]<- "A2a"
-faunal.cluster$FaunalCluster[faunal.cluster$ClusterNum == 8] <- "A2b"
-faunal.cluster$FaunalCluster[faunal.cluster$ClusterNum == 3]<- "B1a"
-faunal.cluster$FaunalCluster[faunal.cluster$ClusterNum == 7] <- "B1b"
-faunal.cluster$FaunalCluster[faunal.cluster$ClusterNum == 4] <- "C1a"
-faunal.cluster$FaunalCluster[faunal.cluster$ClusterNum == 5] <- "C1b"
-faunal.cluster$FaunalCluster[faunal.cluster$ClusterNum == 12] <- "D1"
-faunal.cluster$FaunalCluster[faunal.cluster$ClusterNum == 2] <- "D2a"
-faunal.cluster$FaunalCluster[faunal.cluster$ClusterNum == 10] <- "D2b"
-faunal.cluster$FaunalCluster[faunal.cluster$ClusterNum == 6] <- "D2c"
-faunal.cluster$FaunalCluster[faunal.cluster$ClusterNum == 9]<- "D2d"
-
-## Save baseline cluster output for use in Shiny
-#View(faunal.cluster)
-write.csv(faunal.cluster,file = "OUTPUTS/BaselineFunalCluster.csv",row.names=FALSE)
-
-#### TRAIN DATA: MAP OF FAUNAL CLUSTER DISTRIBUTION ####
-
-## Produce map
-p2= ggplot()+
-  geom_polygon(data=defra.dem.df, aes(x=long, y=lat, group=group,fill=Depth))+
-  scale_fill_manual(values=grey,name="Depth (m)",guide=FALSE)+
-  geom_point(data=faunal.cluster,aes(Longitude_WGS84,Latitude_WGS84,col=FaunalCluster),
-             size=0.45,show.legend = F)+
-  geom_polygon(data = euDF2, aes(x=long, y=lat, group = group),fill="white",colour="black",
-               size=0.15)+
-  scale_colour_manual(values = c("blue2","cyan1","#05aae1","plum2","darkorchid3","green3",
-                                 "palegreen1","#b40202","red1","darkorange","yellow",
-                                 "#b4b404"),name="Cluster")+
-  guides(colour = guide_legend(override.aes = list(size=3)))+ # Change size of legend dots
-  coord_map(xlim = c(-10.7, 4),ylim = c(48, 62))+ #set x,y limits of plot
-  theme_bw(base_size = 24)+ 
-  labs(x="Longitude",y="Latitude")
-
-fig4a=p2+theme(legend.key.size = unit(1, "cm"))+
-  guides(colour = guide_legend(override.aes = list(size=6)))
-
-## Save plot to an image file (png or tiff)
-png("OUTPUTS/FIGURE C5922 FAUNAL CLUSTERS.png",width = 29.7,height = 42,units = "cm", res = 600,
-    pointsize = 48)
-#tiff("OUTPUTS/FIGURE 4a.tiff",width = 29.7,height = 42,units = "cm",res = 600,pointsize = 48)
-fig4a
-dev.off()
-
-## Save legend for use in Figure 7
-legendfclus <- get_legend(p2 + theme_bw(base_size=24)+ guides(colour = guide_legend(override.aes = list(size=8))))
-plot(legendfclus)
 
 
 
@@ -935,17 +947,8 @@ png("OUTPUTS/FIGURE 2.png", width=52, height=37, units="cm", res=400)
 plot_grid(fig4a,testmap,labels=c("a)"," b)"),label_size = 24,rel_widths = c(1,1.30),align = "h" )
 dev.off()
 
-#################################################################################################
-### STEP REF:                                                                                 ###  
-###                                                                                           ###
-### TASK:           Train (transparent) and Test together                                     ###
-###                                                                                           ###
-### NOTES:                                                                                    ###
-#################################################################################################
 
 ## Need to add test colours to bathy colours
-#grey1=c("#F2F2F2","#EAEAEA","#B8B8B8","#909090","#E1E1E1","#ACACAC", "#808080","#D8D8D8","#CECECE","#C3C3C3","#9F9F9F","blue2","cyan1","palegreen1","#b40202","red1","yellow","#b4b404")
-
 grey1=c("#F2F2F2","#EAEAEA","#B8B8B8","#909090","#E1E1E1","#ACACAC", "#808080","#D8D8D8","#CECECE","#C3C3C3","#9F9F9F","blue2","cyan1","#05aae1","green3","palegreen1","#b40202","red1","darkorange","yellow","#b4b404")
 
 ## Produce map
