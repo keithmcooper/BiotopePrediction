@@ -1,15 +1,31 @@
-#################################################################################################
-#################################################################################################
-##                MATCHING NEW SAMPLE DATA TO EXISTING BIO AND PHY CLUSTER GROUPS              ##
-#################################################################################################
-#################################################################################################
+####### R SCRIPT FOR ANALYSIS OF DATA IN COOPER (2019) #######
 
-## Ths script matches new faunal data to the existing cluster groups in Cooper and Barry (2017)
+##  Reference: Cooper, K.M. (2019) A new machine learning approach to seabed biotope classification. Journal of Applied Ecology
+
+## Required Files:
+# 1. BiotopePredictionScript.R (i.e. this script. Available from: ?).
+# 2. EUROPE.shp (European Coastline) (Available from https://doi.org/10.14466/CefasDataHub.34)
+# 3. EuropeLiteScoWal.shp (European Coastline with UK boundaries) (Available from https://doi.org/10.14466/CefasDataHub.34)
+# 4. DEFRADEMKC8.shp (Seabed bathymetry)
+# 5. C5922DATASETFAM13022017.csv (Training dataset) (Available from https://doi.org/10.14466/CefasDataHub.34)
+# 6. PARTC16112018.csv (Test dataset) (Available from ?)
+# 7. PARTCAGG16112018.csv (Available from ?)
+
+
+## Required folder structure:
+# C:\BiotopePrediction\R 
+#         \DATA
+#         \OUTPUTS
+
+## Folder Contents: 
+# C:\FINAL\R (file 1) 
+# C:\FINAL\DATA (files 2:7)
+# C:\FINAL\OUTPUTS (.png and .csv files resulting from script)
+
+## Notes: Ths script matches new faunal data to the existing cluster groups in Cooper and Barry (2017) # The script will generate the figures and content of tables in Cooper et al (2018). The script is divided into 57 individual steps. 
 
 ## Set working directory
 setwd('C:/Users/kmc00/OneDrive - CEFAS/R_PROJECTS/BiotopePrediction')
-
-#### PREPARE MAPPING LAYERS ####
 
 ## Install packages 
 #install.packages("ggplot2")
@@ -29,10 +45,12 @@ methods(class = "sf")
 install_github("edzer/rgdal2")
 library(devtools) # maybe install first?
 
-  
-  ## Produce a high definition european coast map
-  # Load shapefile
-  eu <- readOGR("DATA","EUROPE")
+
+#### PREPARE MAPPING LAYERS ####
+
+## Produce a high definition european coast map
+# Load shapefile
+eu <- readOGR("DATA","EUROPE")
 eu@data$id <- rownames(eu@data)
 
 ## Create a data.frame from our spatial object
@@ -152,6 +170,7 @@ pos=train.data4.5[,c(1,807:808)]
 ## Check names of df 'pos'
 names(pos)
 
+
 #### TRAIN DATA: FAUNAL CLUSTER ANALYSIS ####
 
 ## Steps 19 and 21 in Cooper & Barry (2017) R Script
@@ -198,6 +217,7 @@ faunal.cluster$FaunalCluster[faunal.cluster$ClusterNum == 9]<- "D2d"
 ## Save baseline cluster output for use in Shiny
 #View(faunal.cluster)
 write.csv(faunal.cluster,file = "OUTPUTS/BaselineFunalCluster.csv",row.names=FALSE)
+
 
 #### TRAIN DATA: MAP OF FAUNAL CLUSTER DISTRIBUTION ####
 
