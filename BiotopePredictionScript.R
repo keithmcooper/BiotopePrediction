@@ -1166,23 +1166,25 @@ SCRSMP= ggplot()+
 
 SCRSMP
 
-## nOW PUT ALL SITE PLOTS TOGETHER
+
+
+## nOW PUT ALL SITE PLOTS TOGETHER (HORIZONTAL)
 library(cowplot)
 
-top=plot_grid(IDRBNR,SCRSMP, labels = c("a)","b)"),nrow=2, align='hv',label_size = 20)
+top=plot_grid(IDRBNR,SCRSMP, labels = c("a)","d)"),nrow=2, align='v',label_size = 22, hjust = 0.05)
 #bl=plot_grid(NNSB,NWJB, labels = c("c)","e)"), align='hv',label_size = 20)
 #br=plot_grid(HHW,U, labels = c("d)","f)"), align='hv',label_size = 20)
-bl=plot_grid(NNSB,NWJB, labels = c("c)","e)"), align='v',label_size = 20)
-br=plot_grid(HHW,U, labels = c("d)","f)"), align='v',label_size = 20)
+bl=plot_grid(NNSB,NWJB, labels = c("b)","c)"), align='v',label_size = 22)
+br=plot_grid(HHW,U, labels = c("e)","f)"), align='v',label_size = 22)
 
-b=plot_grid(bl,br,ncol=1,align='hv',label_size = 20)
-f4=plot_grid(top,b,ncol=1,align='hv',label_size = 20)
+b=plot_grid(bl,br,ncol=1,align='hv',label_size = 22)
+f4=plot_grid(top,b,ncol=2,align='hv',label_size = 22)
 
-f5=plot_grid(NULL,f4,ncol=2, rel_widths=c(0.02,1))
-f6=plot_grid(f5,NULL,ncol=1, rel_heights=c(1,0.02))
+f5=plot_grid(NULL,f4,ncol=2, rel_widths=c(0.06,1))
+f6=plot_grid(f5,NULL,ncol=1, rel_heights=c(1,0.06))
 
-f7=f6+draw_label("Longitude", x=0.5, y=  0, vjust=-0.5, angle= 0, size=20) +#
-  draw_label("Latitude", x= 0, y=0.5, vjust= 1.5, angle=90, size=20)#
+f7=f6+draw_label("Longitude", x=0.5, y=  0, vjust=-0.5, angle= 0, size=22) +#
+  draw_label("Latitude", x= 0, y=0.5, vjust= 1.5, angle=90, size=22)#
 
 
 ## to get legend 
@@ -1190,13 +1192,9 @@ f7=f6+draw_label("Longitude", x=0.5, y=  0, vjust=-0.5, angle= 0, size=20) +#
 # LEGEND STORED IN legendfclus
 
 p <- plot_grid(f7, legendfclus, ncol = 2, rel_widths = c(1, 0.1))
-png("OUTPUTS/Figure_4.png",width=38, height=80, units="cm", res=400)#res=600
+png("OUTPUTS/Figure_4.png",width=70, height=38, units="cm", res=400)#res=600
 p
 dev.off()
-
-
-
-
 
 ####################################################################################################
 ##              NOW DO SAME FOR PHY VARIABLES                                                     ##
