@@ -188,8 +188,6 @@ saveRDS(results, file = "OUTPUTS/results")
 
 #### TRAIN DATA: DF FOR FAUNAL CLUSTER MAPS ####
 
-## Step 23 in Cooper & Barry (2017) R Script
-
 ## Add cluster group from kmeans results file to df 'pos' which includes 'Sample',
 # 'Latitude_WGS84' and 'Longitude_WGS84'
 faunal.cluster=cbind(pos,results$cluster)
@@ -241,15 +239,17 @@ fig4a=p2+theme(legend.key.size = unit(1, "cm"))+
   guides(colour = guide_legend(override.aes = list(size=6)))
 
 ## Save plot to an image file (png or tiff)
-png("OUTPUTS/FIGURE C5922 FAUNAL CLUSTERS.png",width = 29.7,height = 42,units = "cm", res = 600,
+png("OUTPUTS/FIGURE 2.png",width = 29.7,height = 42,units = "cm", res = 600,
     pointsize = 48)
 #tiff("OUTPUTS/FIGURE 4a.tiff",width = 29.7,height = 42,units = "cm",res = 600,pointsize = 48)
 fig4a
 dev.off()
 
+
 ## Save legend for use in Figure 7
 legendfclus <- get_legend(p2 + theme_bw(base_size=24)+ guides(colour = guide_legend(override.aes = list(size=8))))
 plot(legendfclus)
+
 
 #### TRAIN DATA: DISTANCE TO CLUSTER CENTRES ####
 
@@ -293,10 +293,10 @@ class(DistancetoCentersTrain3) # matrix
 DistancetoCentersTrain3=as.data.frame(DistancetoCentersTrain3)
 
 ## Add in Phy cluster group from object 'train.phy.output' which inc Sample and PhyCluster
-DistancetoCentersTrain3$PhyCluster=NA
-DistancetoCentersTrain4 <-merge(DistancetoCentersTrain3, train.phy.output, by="Sample")
-DistancetoCentersTrain5=DistancetoCentersTrain4[,c(2,1,3,19,4:15)]
-names(DistancetoCentersTrain5)=c("Survey","Sample","FaunalCluster","PhyCluster","A1","A2a","A2b","B1a","B1b" ,"C1a" ,"C1b","D1","D2a","D2b","D2c","D2d")
+#DistancetoCentersTrain3$PhyCluster=NA
+#DistancetoCentersTrain4 <-merge(DistancetoCentersTrain3, train.phy.output, by="Sample")
+#DistancetoCentersTrain5=DistancetoCentersTrain4[,c(2,1,3,19,4:15)]
+#names(DistancetoCentersTrain5)=c("Survey","Sample","FaunalCluster","PhyCluster","A1","A2a","A2b","B1a","B1b" ,"C1a" ,"C1b","D1","D2a","D2b","D2c","D2d")
 #View(DistancetoCentersTrain5)
 
 DistancetoCentersTrain5=DistancetoCentersTrain3
@@ -305,7 +305,7 @@ DistancetoCentersTrain5=DistancetoCentersTrain3
 DistancetoCentersTrain5$Survey <- as.character(as.character(DistancetoCentersTrain5$Survey))
 DistancetoCentersTrain5$Sample <- as.character(as.character(DistancetoCentersTrain5$Sample))
 DistancetoCentersTrain5$FaunalCluster <- as.character(as.character(DistancetoCentersTrain5$FaunalCluster))
-DistancetoCentersTrain5$PhyCluster <- as.character(as.character(DistancetoCentersTrain5$PhyCluster))
+#DistancetoCentersTrain5$PhyCluster <- as.character(as.character(DistancetoCentersTrain5$PhyCluster))
 DistancetoCentersTrain5$A1 <- as.numeric(as.character(DistancetoCentersTrain5$A1))
 DistancetoCentersTrain5$A2a <- as.numeric(as.character(DistancetoCentersTrain5$A2a))
 DistancetoCentersTrain5$A2b <- as.numeric(as.character(DistancetoCentersTrain5$A2b))
