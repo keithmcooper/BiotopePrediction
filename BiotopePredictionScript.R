@@ -246,7 +246,7 @@ fig4a
 dev.off()
 
 
-## Save legend for use in Figure 7
+## Save legend for use in Figure 4
 legendfclus <- get_legend(p2 + theme_bw(base_size=24)+ guides(colour = guide_legend(override.aes = list(size=8))))
 plot(legendfclus)
 
@@ -1014,62 +1014,11 @@ print(inset2,vp=v2)
 dev.off() 
 
 
-#### TRAIN & TEST DATA: MAP OF FAUNAL CLUSTER DISTRIBUTION ####
-
-library(cowplot)
-
-png("OUTPUTS/FIGURE 2.png", width=52, height=37, units="cm", res=400)
-plot_grid(fig4a,testmap,labels=c("a)"," b)"),label_size = 24,rel_widths = c(1,1.30),align = "h" )
-dev.off()
-
-
-## Need to add test colours to bathy colours
-grey1=c("#F2F2F2","#EAEAEA","#B8B8B8","#909090","#E1E1E1","#ACACAC", "#808080","#D8D8D8","#CECECE","#C3C3C3","#9F9F9F","blue2","cyan1","#05aae1","green3","palegreen1","#b40202","red1","darkorange","yellow","#b4b404")
-
-## Produce map
-p2= ggplot()+
-  geom_polygon(data=defra.dem.df, aes(x=long, y=lat, group=group,fill=Depth))+
-  scale_fill_manual(values=grey1,name="Depth (m)",guide=FALSE)+
-  geom_point(data=faunal.cluster,aes(Longitude_WGS84,Latitude_WGS84,col=FaunalCluster),
-             size=1,shape=16,alpha=0.3,show.legend = TRUE)+#size=3
-  geom_polygon(data = euDF2, aes(x=long, y=lat, group = group),fill="white",colour="black",
-               size=0.3)+
-  geom_point(data=faunal.cluster.test,aes(Longitude_WGS84,Latitude_WGS84,fill=FaunalCluster),col="black",size=0.8,shape=21,stroke = 0.3)+ #,show.legend = TRUE size=2
-  scale_colour_manual(values = c("blue2","cyan1","#05aae1","plum2","darkorchid3","green3",
-                                 "palegreen1","#b40202","red1","darkorange","yellow","#b4b404"),name="Cluster")+
-  guides(colour = guide_legend(override.aes = list(size=3)))+ # Change size of legend dots
-  coord_map(xlim = c(-10.7, 4),ylim = c(48, 62))+ #set x,y limits of plot
-  #coord_map(xlim = c(0, 3),ylim = c(52, 54))+ #set x,y limits of plot
-  #coord_map(xlim = c(-1.5, -0.5),ylim = c(50.5, 51))+ #set x,y limits of plot#UTOPIA
-  #coord_map(xlim = c(-8.5,-7.5),ylim = c(49.5, 50.3))+ #set x,y limits of plot#NWJB 
-  theme_bw(base_size = 20)+ 
-  labs(x="Longitude",y="Latitude")
-
-plot1=p2+theme(legend.key.size = unit(1, "cm"))+
-  guides(colour = guide_legend(override.aes = list(alpha=1,size=6)))
-
-
-## Save plot to an image file (png or tiff)
-png("OUTPUTS/FIGURE Map of transparent Train and ringed Test samples.png",width = 30,height = 29,units = "cm", res = 600)
-#tiff("OUTPUTS/FIGURE 4a.tiff",width = 29.7,height = 42,units = "cm",res = 600,pointsize = 48)
-plot1
-dev.off()
-
-#################################################################################################
-### STEP REF:                                                                                 ###  
-###                                                                                           ###
-### TASK:           Train (transparent) and Test together                                     ###
-###                                                                                           ###
-### NOTES:          Now with prescribed alpha colour for baseline samples                                                                          ###
-#################################################################################################
+#### TRAIN AND TEST SAMPLE TOGETHER ####
 
 ## Identify washed out colours for the 12 faunal groups. Choose a lighter tint (5th from left, bottom row) of the parent colour (http://www.color-hex.com/color/e1e19a). HEX colours for 12 groups are:#0000EE,#00FFFF,#05AAC1,#EEAEEE,#9A32CD,#00CD00,#9AFF9A,#B40202,#FF0000,#FF8C00,#FFFF00,#B4B404
 
 ## Need to add test colours to bathy colours
-#grey1=c("#F2F2F2","#EAEAEA","#B8B8B8","#909090","#E1E1E1","#ACACAC", "#808080","#D8D8D8","#CECECE","#C3C3C3","#9F9F9F","blue2","cyan1","palegreen1","#b40202","red1","yellow","#b4b404")
-
-#grey1=c("#F2F2F2","#EAEAEA","#B8B8B8","#909090","#E1E1E1","#ACACAC", "#808080","#D8D8D8","#CECECE","#C3C3C3","#9F9F9F","blue2","cyan1","#05aae1", "green3","palegreen1","#b40202","red1","yellow","#b4b404")# slot faunal colours in as required (see: levels(faunal.cluster.test$FaunalCluster) )
-
 grey1=c("#F2F2F2","#EAEAEA","#B8B8B8","#909090","#E1E1E1","#ACACAC", "#808080","#D8D8D8","#CECECE","#C3C3C3","#9F9F9F","blue2","cyan1","#05aae1","green3","palegreen1","#b40202","red1","darkorange","yellow","#b4b404")
 
 ## Produce map
@@ -1217,7 +1166,7 @@ SCRSMP= ggplot()+
 
 SCRSMP
 
-#####################################
+## nOW PUT ALL SITE PLOTS TOGETHER
 library(cowplot)
 
 top=plot_grid(IDRBNR,SCRSMP, labels = c("a)","b)"),nrow=2, align='hv',label_size = 20)
@@ -1235,9 +1184,6 @@ f6=plot_grid(f5,NULL,ncol=1, rel_heights=c(1,0.02))
 f7=f6+draw_label("Longitude", x=0.5, y=  0, vjust=-0.5, angle= 0, size=20) +#
   draw_label("Latitude", x= 0, y=0.5, vjust= 1.5, angle=90, size=20)#
 
-png("OUTPUTS/Figure_4.png",width=38, height=80, units="cm", res=400)#res=600
-f7
-dev.off()
 
 ## to get legend 
 #http://htmlpreview.github.io/?https://github.com/wilkelab/cowplot/blob/master/inst/doc/shared_legends.html
@@ -1249,60 +1195,7 @@ p
 dev.off()
 
 
-#######
-bottomleft=plot_grid(HHW,NWJB, labels = c("c)","d)"),nrow=1, align='hv',label_size = 20)
-left=plot_grid(SCRSMP,bottomleft,ncol=1, align='v',rel_widths=c(1.5,1),label_size = 20)
 
-bottomright=plot_grid(NNSB,U, labels = c("c)","d)"),nrow=1, align='hv',label_size = 20)
-right=plot_grid(IDRBNR,bottomright,ncol=1, align='v',rel_widths=c(1.5,1),label_size = 20)
-
-
-
-
-
-f6=plot_grid(left,right, nrow=1, align='hv',rel_widths=c(1.5,1),label_size = 20)
-
-
-f7=f6+draw_label("Longitude", x=0.5, y=  0, vjust=-0.5, angle= 0, size=20) +#
-  draw_label("Latitude", x= 0, y=0.5, vjust= 1.5, angle=90, size=20)#
-
-
-## to get legend 
-#http://htmlpreview.github.io/?https://github.com/wilkelab/cowplot/blob/master/inst/doc/shared_legends.html
-# LEGEND STORED IN legendfclus
-
-p <- plot_grid(f7, legendfclus, ncol = 2, rel_widths = c(1, 0.1))
-png("OUTPUTS/Figure_4v2.png",width=60, height=20, units="cm", res=400)#res=600
-p
-dev.off()
-
-
-####################################
-
-#### TRAIN & TEST MAPS TOGETHER #### 
-library(cowplot)
-plot4left =plot_grid(HHW,NNSB,U,labels = c("a) HHW","b) NNSB","c) U"),nrow = 3,rel_widths = c(1,1,1),label_size = 26,hjust=0.01,vjust=1,align = 'h')#scale = 0.95
-
-png("OUTPUTS/Figure_4.png",width=60, height=80, units="cm", res=400)#res=600
-#tiff("OUTPUTS/Figure_4.tif",width=45, height=63, units="cm", res=250,compression = "lzw")
-
-plot4left 
-dev.off()
-
-plot4right =plot_grid(NWJB,SCRSMP,IDRBNR,labels = c("d) NWJB","e) SCRSMP","f) IDRBNR"),nrow = 3,rel_widths = c(1,1,1),label_size = 26,hjust=0.01,vjust=1,align = 'h')#scale = 0.95
-
-png("OUTPUTS/Figure_4p2.png",width=60, height=80, units="cm", res=400)#res=600
-#tiff("OUTPUTS/Figure_4.tif",width=45, height=63, units="cm", res=250,compression = "lzw")
-
-plot4right 
-dev.off()
-
-plot4all=plot_grid(plot4left,plot4right,nrow = 1,rel_widths = c(1,1),label_size = 26,hjust=0.01,vjust=1,align = 'h')#scale = 0.95
-png("OUTPUTS/Figure_4all.png",width=60, height=80, units="cm", res=600)#res=600
-#tiff("OUTPUTS/Figure_4.tif",width=45, height=63, units="cm", res=250,compression = "lzw")
-
-plot4all 
-dev.off()
 
 
 ####################################################################################################
