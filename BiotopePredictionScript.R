@@ -405,10 +405,9 @@ DistancetoCentersTrain7$Gear=as.character(DistancetoCentersTrain7$Gear)# change 
 DistancetoCentersTrain7$Gear[DistancetoCentersTrain7$Gear=="DG"] <- "0.1m2 Day Grab"
 DistancetoCentersTrain7$Gear[DistancetoCentersTrain7$Gear=="MHN"] <- "0.1m2 Hamon Grab"
 DistancetoCentersTrain7$Gear[DistancetoCentersTrain7$Gear=="VV"] <- "0.1m2 Van Veen Grab"
-DistancetoCentersTrain7$Gear[DistancetoCentersTrain7$Gear=="SM"] <- "0.1m2 Smyth McIntyre Grab"
+DistancetoCentersTrain7$Gear[DistancetoCentersTrain7$Gear=="SM"] <- "0.1m2 Smith McIntyre Grab"
 
 ## Create a csv for train sample distance/zscore/percentile for use in shiny app. 
-#write.csv(DistancetoCentersTrain6,file = "OUTPUTS/DistancetoCentersTrain6.csv",row.names=F)
 write.csv(DistancetoCentersTrain7,file = "OUTPUTS/DistancetoCentersTrain6.csv",row.names=F)
 
 ## Select stations from survey
