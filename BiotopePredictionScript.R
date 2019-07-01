@@ -394,8 +394,22 @@ DistancetoCentersTrain6$pD2d=round(pnorm(DistancetoCentersTrain6$zD2d)*100,1)
 D2cclusdist=DistancetoCentersTrain6[ which(DistancetoCentersTrain6$FaunalCluster=='D2c'),]
 hist(D2cclusdist$zD2c,breaks=40)
 
+## Need to add gear to object 'DistancetoCentersTrain6'
+names(DistancetoCentersTrain6)
+names(train.data4.5)
+DistancetoCentersTrain7=cbind(DistancetoCentersTrain6,train.data4.5[809])
+names(DistancetoCentersTrain7)
+
+## Update gear names
+DistancetoCentersTrain7$Gear=as.character(DistancetoCentersTrain7$Gear)# change to character
+DistancetoCentersTrain7$Gear[DistancetoCentersTrain7$Gear=="DG"] <- "0.1m2 Day Grab"
+DistancetoCentersTrain7$Gear[DistancetoCentersTrain7$Gear=="MHN"] <- "0.1m2 Hamon Grab"
+DistancetoCentersTrain7$Gear[DistancetoCentersTrain7$Gear=="VV"] <- "0.1m2 Van Veen Grab"
+DistancetoCentersTrain7$Gear[DistancetoCentersTrain7$Gear=="SM"] <- "0.1m2 Smyth McIntyre Grab"
+
 ## Create a csv for train sample distance/zscore/percentile for use in shiny app. 
-write.csv(DistancetoCentersTrain6,file = "OUTPUTS/DistancetoCentersTrain6.csv",row.names=F)
+#write.csv(DistancetoCentersTrain6,file = "OUTPUTS/DistancetoCentersTrain6.csv",row.names=F)
+write.csv(DistancetoCentersTrain7,file = "OUTPUTS/DistancetoCentersTrain6.csv",row.names=F)
 
 ## Select stations from survey
 NWJBCentres=DistancetoCentersTrain6[ which(DistancetoCentersTrain6$Survey=='North West Jones Bank_MCZ_infauna'),] 
