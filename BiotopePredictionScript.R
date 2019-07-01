@@ -6,14 +6,14 @@
 # 1. BiotopePredictionScript.R (i.e. this script. Available from: ?).
 # 2. EUROPE.shp (European Coastline) (Available from https://doi.org/10.14466/CefasDataHub.34)
 # 3. EuropeLiteScoWal.shp (European Coastline with UK boundaries) (Available from https://doi.org/10.14466/CefasDataHub.34)
-# 4. DEFRADEMKC8.shp (Seabed bathymetry)
+# 4. DEFRADEMKC8.shp (Seabed bathymetry) (Available from https://doi.org/10.14466/CefasDataHub.34)
 # 5. C5922DATASETFAM13022017.csv (Training dataset) (Available from https://doi.org/10.14466/CefasDataHub.34)
 # 6. PARTC16112018.csv (Test dataset) (Available from ?)
 # 7. PARTCAGG16112018.csv (Available from ?)
 
-
 ## Required folder structure:
-# C:\BiotopePrediction\R 
+# C:\BiotopePrediction
+#         \R 
 #         \DATA
 #         \OUTPUTS
 
@@ -22,29 +22,22 @@
 # C:\FINAL\DATA (files 2:7)
 # C:\FINAL\OUTPUTS (.png and .csv files resulting from script)
 
-## Notes: Ths script matches new faunal data to the existing cluster groups in Cooper and Barry (2017) # The script will generate the figures and content of tables in Cooper et al (2018). The script is divided into 57 individual steps. 
+## Notes: Ths script matches new faunal data to the existing faunal cluster groups identified in Cooper and Barry (2017) and will generate the figures and content of tables in Cooper (2019). The script is divided into 22 individual steps. 
 
 ## Set working directory
 setwd('C:/Users/kmc00/OneDrive - CEFAS/R_PROJECTS/BiotopePrediction')
-
-## Install packages 
-#install.packages("ggplot2")
-#install.packages("rgdal")
-#install.packages("maptools")
-#install.packages("plyr")
 
 ## Call packages
 library(ggplot2)
 library(rgdal)
 library(maptools)
 library(plyr)
-library(RPostgreSQL) 
 library(sf)
 library(methods)
-library(devtools) # maybe install first?
+library(cowplot)
 
 
-#### PREPARE MAPPING LAYERS ####
+#### 1. PREPARE MAPPING LAYERS ####
 
 ## Produce a high definition european coast map
 # Load shapefile
@@ -54,9 +47,7 @@ eu@data$id <- rownames(eu@data)
 ## Create a data.frame from our spatial object
 euDF <- fortify(eu, region = "id")
 
-## Merge the "fortified" data with the data from our spatial object. Object euDF 
-# is a dataframe of the polygon coordinates.  This is combined with the other attribute
-# data from object eu
+## Merge the "fortified" data with the data from our spatial object. Object euDF is a dataframe of the polygon coordinates. This is combined with the other attribute data from object eu
 euDF2 <- merge(euDF, eu@data, by = "id")
 
 ## Create layer for coastline including borders between UK countries
@@ -70,17 +61,15 @@ defra.dem = readOGR("DATA","DEFRADEMKC8")
 defra.dem$id = rownames(defra.dem@data)
 defra.dem.points = fortify(defra.dem, region="id")
 defra.dem.df = join(defra.dem.points, defra.dem@data, by="id")
-defra.dem.df$Depth = factor(defra.dem.df$Depth,levels(defra.dem.df$Depth)[c(1,2,5,8,9,10,3,6,11,
-                                                                            4,7)])
+defra.dem.df$Depth = factor(defra.dem.df$Depth,levels(defra.dem.df$Depth)[c(1,2,5,8,9,10,3,6,11,4,7)])
 levels(defra.dem.df$Depth)
 
 ## Create grey scale colour palette for use with bathy fill. 0=black, 1=white
-grey=grey.colors(11, start = 0.95, end = 0.5,  alpha = NULL,gamma = 2.2)#, end=0.01
+grey=grey.colors(11, start = 0.95, end = 0.5,  alpha = NULL,gamma = 2.2)
 
 
 
-
-####  TRAIN DATA: LOAD ####
+####  2. TRAIN DATA: LOAD ####
 
 ## Bring in training data file
 train.data=read.csv("DATA/C5922DATASETFAM13022017.csv", header=T,na.strings=c("NA", "-","?","<null>"),stringsAsFactors=F,check.names=FALSE)
@@ -90,9 +79,6 @@ train.data[1] <- NULL
 
 ## Check dataset dimensions
 dim(train.data)#33198 900
-
-## View dataset
-#View(train.data)
 
 ## Change variable data types (factors required for plotting).
 train.data$Sieve = as.factor(train.data$Sieve)
@@ -109,7 +95,8 @@ length(rle(sort(train.data$Survey))$values)# 777
 table(train.data$Survey)
 
 
-#### TRAIN DATA: PREPARE ####
+
+#### 3. TRAIN DATA: PREPARE ####
 
 ## Prepare baseline data for faunal analysis - subset of comparable samples. This is Step 16 in Cooper & Barry (2017) R Script
 
@@ -169,13 +156,14 @@ pos=train.data4.5[,c(1,807:808)]
 names(pos)
 
 
-#### TRAIN DATA: FAUNAL CLUSTER ANALYSIS ####
+
+#### 4. TRAIN DATA: FAUNAL CLUSTER ANALYSIS ####
 
 ## Steps 19 and 21 in Cooper & Barry (2017) R Script
 
 ## Transform the data (fourth-root transformation)
 datat=data6^(0.25)
-dim(data6)
+
 ## Perform Kmeans clusterinig of data. Results (cluster group) to the object 'results'
 set.seed(1234)
 results=kmeans(datat,12,algorithm="MacQueen",iter.max=100,nstart=25)
@@ -184,7 +172,8 @@ results=kmeans(datat,12,algorithm="MacQueen",iter.max=100,nstart=25)
 saveRDS(results, file = "OUTPUTS/results")
 
 
-#### TRAIN DATA: DF FOR FAUNAL CLUSTER MAPS ####
+
+#### 5. TRAIN DATA: DF FOR FAUNAL CLUSTER MAPS ####
 
 ## Add cluster group from kmeans results file to df 'pos' which includes 'Sample',
 # 'Latitude_WGS84' and 'Longitude_WGS84'
@@ -196,7 +185,7 @@ names(faunal.cluster)[4]<-paste("ClusterNum")
 ## Add a new empty col 'FaunalCluster' to df 'faunal.cluster
 faunal.cluster["FaunalCluster"]=NA
 
-## Populate FaunalCluster col with new names (see dendrogram from Step 21)
+## Populate FaunalCluster col with new names (see faunal dendrogram in Cooper and Barry, 2017 (step 21))
 faunal.cluster$FaunalCluster[faunal.cluster$ClusterNum == 11] <- "A1"
 faunal.cluster$FaunalCluster[faunal.cluster$ClusterNum == 1]<- "A2a"
 faunal.cluster$FaunalCluster[faunal.cluster$ClusterNum == 8] <- "A2b"
@@ -211,11 +200,11 @@ faunal.cluster$FaunalCluster[faunal.cluster$ClusterNum == 6] <- "D2c"
 faunal.cluster$FaunalCluster[faunal.cluster$ClusterNum == 9]<- "D2d"
 
 ## Save baseline cluster output for use in Shiny
-#View(faunal.cluster)
 write.csv(faunal.cluster,file = "OUTPUTS/BaselineFunalCluster.csv",row.names=FALSE)
 
 
-#### TRAIN DATA: MAP OF FAUNAL CLUSTER DISTRIBUTION ####
+
+#### 6. TRAIN DATA: MAP OF FAUNAL CLUSTER DISTRIBUTION ####
 
 ## Produce map
 p2= ggplot()+
@@ -243,13 +232,13 @@ png("OUTPUTS/FIGURE 2.png",width = 29.7,height = 42,units = "cm", res = 600,
 fig4a
 dev.off()
 
-
-## Save legend for use in Figure 4
+## Save legend for use in Figure 4 see http://htmlpreview.github.io/?https://github.com/wilkelab/cowplot/blob/master/inst/doc/shared_legends.html)
 legendfclus <- get_legend(p2 + theme_bw(base_size=24)+ guides(colour = guide_legend(override.aes = list(size=8))))
 plot(legendfclus)
 
 
-#### TRAIN DATA: DISTANCE TO CLUSTER CENTRES ####
+
+#### 7. TRAIN DATA: DISTANCE TO CLUSTER CENTRES ####
 
 ## Find distances to cluster centre
 #see https://stackoverflow.com/questions/44137906/r-data-output-ordered-by-distance-from-cluster-center
@@ -264,46 +253,34 @@ DistancesToCentersp6 <- as.matrix(dist(rbind(results$centers, datat[25001:27432,
 DistancesToCentersAll=rbind(DistancesToCentersp1,DistancesToCentersp2,DistancesToCentersp3,DistancesToCentersp4,DistancesToCentersp5,DistancesToCentersp6)
 
 ## Add Sample column
-#names(pos)
 DistancetoCentersTrain=cbind(pos$Sample,DistancesToCentersAll)
-#View(DistancetoCentersTrain)
 
 ## Update column names
 colnames(DistancetoCentersTrain)=c("Sample","A2a","D2a","B1a","C1a","C1b","D2c","B1b","A2b","D2d","D2b","A1","D1")
 
 ## Change column order
 DistancetoCentersTrain=DistancetoCentersTrain[,c(1,12,2,9,4,8,5,6,13,3,11,7,10)]
-#View(DistancetoCentersTrain)
 
 ## Add Survey column
 trainsurveynames=train.data4.5[,806]# get Survey names
 DistancetoCentersTrain2=cbind(trainsurveynames,DistancetoCentersTrain)
 colnames(DistancetoCentersTrain2)[1]="Survey"
-#View(DistancetoCentersTrain2)
 
 ## Add in Faunal cluster group (1st need to create object 'faunal.cluster' - see below)
 DistancetoCentersTrain3=cbind(DistancetoCentersTrain2[,1:2],faunal.cluster$FaunalCluster,DistancetoCentersTrain2[,3:14])
 colnames(DistancetoCentersTrain3)[3] <- "FaunalCluster"
-#View(DistancetoCentersTrain3)
 
 ## Change object 'DistancetoCentersTrain3' from matrix to dataframe
 class(DistancetoCentersTrain3) # matrix
 DistancetoCentersTrain3=as.data.frame(DistancetoCentersTrain3)
 
-## Add in Phy cluster group from object 'train.phy.output' which inc Sample and PhyCluster
-#DistancetoCentersTrain3$PhyCluster=NA
-#DistancetoCentersTrain4 <-merge(DistancetoCentersTrain3, train.phy.output, by="Sample")
-#DistancetoCentersTrain5=DistancetoCentersTrain4[,c(2,1,3,19,4:15)]
-#names(DistancetoCentersTrain5)=c("Survey","Sample","FaunalCluster","PhyCluster","A1","A2a","A2b","B1a","B1b" ,"C1a" ,"C1b","D1","D2a","D2b","D2c","D2d")
-#View(DistancetoCentersTrain5)
-
+## Create a copy of the data 'DistancetoCentersTrain3'
 DistancetoCentersTrain5=DistancetoCentersTrain3
 
 ## Change column format
 DistancetoCentersTrain5$Survey <- as.character(as.character(DistancetoCentersTrain5$Survey))
 DistancetoCentersTrain5$Sample <- as.character(as.character(DistancetoCentersTrain5$Sample))
 DistancetoCentersTrain5$FaunalCluster <- as.character(as.character(DistancetoCentersTrain5$FaunalCluster))
-#DistancetoCentersTrain5$PhyCluster <- as.character(as.character(DistancetoCentersTrain5$PhyCluster))
 DistancetoCentersTrain5$A1 <- as.numeric(as.character(DistancetoCentersTrain5$A1))
 DistancetoCentersTrain5$A2a <- as.numeric(as.character(DistancetoCentersTrain5$A2a))
 DistancetoCentersTrain5$A2b <- as.numeric(as.character(DistancetoCentersTrain5$A2b))
@@ -330,7 +307,6 @@ D2adist=subset(DistancetoCentersTrain5, FaunalCluster=="D2a")
 D2bdist=subset(DistancetoCentersTrain5, FaunalCluster=="D2b")
 D2cdist=subset(DistancetoCentersTrain5, FaunalCluster=="D2c")
 D2ddist=subset(DistancetoCentersTrain5, FaunalCluster=="D2d")
-
 
 ## Take only relevant columns for later calculation of mean and sd (change these nos if inc phy clus grp)
 A1dist=A1dist[,1:4]
@@ -399,7 +375,6 @@ DistancetoCentersTrain6$zD2a=(DistancetoCentersTrain6$D2a-meanD2adist)/sdD2adist
 DistancetoCentersTrain6$zD2b=(DistancetoCentersTrain6$D2b-meanD2bdist)/sdD2bdist
 DistancetoCentersTrain6$zD2c=(DistancetoCentersTrain6$D2c-meanD2cdist)/sdD2cdist
 DistancetoCentersTrain6$zD2d=(DistancetoCentersTrain6$D2d-meanD2ddist)/sdD2ddist
-#View(DistancetoCentersTrain6)
 
 ## Calculate z-scores percentiles
 DistancetoCentersTrain6$pA1=round(pnorm(DistancetoCentersTrain6$zA1)*100,1)
@@ -416,40 +391,35 @@ DistancetoCentersTrain6$pD2c=round(pnorm(DistancetoCentersTrain6$zD2c)*100,1)
 DistancetoCentersTrain6$pD2d=round(pnorm(DistancetoCentersTrain6$zD2d)*100,1)
 
 ## Select only samples belonging to chosen cluster and produce histogram
-#D2cclusdist=DistancetoCentersTrain6[ which(DistancetoCentersTrain6$FaunalCluster=='D2c'& DistancetoCentersTrain6$PhyCluster==1 ),]
 D2cclusdist=DistancetoCentersTrain6[ which(DistancetoCentersTrain6$FaunalCluster=='D2c'),]
 hist(D2cclusdist$zD2c,breaks=40)
 
 ## Create a csv for train sample distance/zscore/percentile for use in shiny app. 
-View(DistancetoCentersTrain6)
 write.csv(DistancetoCentersTrain6,file = "OUTPUTS/DistancetoCentersTrain6.csv",row.names=F)
 
 ## Select stations from survey
-#NWJBCentres=DistancetoCentersTrain6[ which(DistancetoCentersTrain6$Survey=='North West Jones Bank_MCZ_infauna'& DistancetoCentersTrain6$FaunalCluster=='D2c'),] 
 NWJBCentres=DistancetoCentersTrain6[ which(DistancetoCentersTrain6$Survey=='North West Jones Bank_MCZ_infauna'),] 
-#View(NWJBCentres)
+
+## Write NWJB data to csv
 write.csv(NWJBCentres,file = "OUTPUTS/NWJBCentres.csv",row.names=F)
 
 
 
-
-
-#### TEST DATA: GENERATE ####
+#### 8. TEST DATA: GENERATE ####
 
 ## Enter new dataset into PRIMER PART C (see subfolder: data)
 
-## Output test data from Primer as a .txt file. PRIMER 6>File>Save data as>PARTC24072017.txt
+## Output test data from Primer as a .txt file. PRIMER 6>File>Save data as>PARTC16112018.txt
 
-## Open file PARTC24072017.txt in Excel and (i) remove 1st row, (ii) remove column between faunal
-# data and metadata, and (iii) add header 'Sample' to first column. Save file as PARTC24072017.csv
+## Open file PARTC16112018.txt in Excel and (i) remove 1st row, (ii) remove column between faunal
+# data and metadata, and (iii) add header 'Sample' to first column. Save file as PARTC16112018.csv
 
 ## Bring in test data
 test.raw=read.csv("DATA/PARTC16112018.csv", header=T,na.strings=c("NA", "-","?","<null>"),
                   stringsAsFactors=F,check.names=FALSE)
 
-
 ## Check dataset dimensions
-dim(test.raw)# 554 13783
+dim(test.raw)# 636 13814
 
 ## Check column order
 options(max.print=1000000)# to see all column names
@@ -501,8 +471,7 @@ test.raw2=test.raw[,c(1:13531,13532,13533,13534,13535,13536,13537,13538,13539,13
 
 ## Check required columns present
 names(test.raw2)
-dim(test.raw2)
-
+dim(test.raw2) # 636 13668
 
 ## Get Survey names
 test.raw2$SurveyName=as.factor(test.raw2$SurveyName)
@@ -510,7 +479,6 @@ levels(test.raw2$SurveyName)
 
 ## Add col for SurveyName summary (to use with plots as full names too long)
 test.raw2$Survey=as.character(test.raw2$SurveyName)
-#names(test.raw2)
 
 ## Populate FaunalCluster col with new names (see dendrogram from Step 21)
 test.raw2$Survey[test.raw2$Survey == "Haisborough, Hammond and Winterton 2016 cSACSCI"] <- "HHW"
@@ -555,13 +523,10 @@ all=cbind(agg,t_test.raw3)
 all2 = subset(all, Include=='Y')
 
 ## Identify dimensions of df 'alla2'
-dim(all2)# note the total number of columns
-
-## View df 'alla2'
-#View(all2)# identify the col nos for Family and samples
-names(all2)
+dim(all2)# note the total number of columns (666)
 
 ## Take only the Family and sample columns. Make sure you change the sample col numbers
+names(all2)
 all2fam=all2[,c(19,31:666)]
 
 ## Aggregate data (sum) by family for multiple samples
@@ -569,7 +534,6 @@ famabundtest=aggregate(. ~ Family, all2fam, sum)
 
 ## Check number of columns has reduced
 dim(famabundtest)# 776 families 637 cols
-#View(famabundtest)
 
 ## Find number of familes (rows with total of >1)
 numfamtest=rowSums(famabundtest[,c(2:637)])
@@ -580,40 +544,39 @@ sum(numfamtest > 0)# 311
 
 
 
+#### 9. TEST DATA: IDENTIFY FAMILIES NOT PRESENT IN TRAIN DATA ####
 
-#### TEST DATA: IDENTIFY FAMILIES NOT PRESENT IN TRAIN DATA ####
-
+## Get taxon names for test data
 testfamnames=famabundtest[,1]
+
+## Get taxon names for train data
 trainfamnames=colnames(train.data5)
 
-
-## Familes in common
+## Find common taxon (family) names
 testfamnames[testfamnames %in% trainfamnames]
 
 ## Families only in test
 uniquetestfam=testfamnames[!(testfamnames %in% trainfamnames)]
 uniquetestfam
 
-## Find out if any of the families unique to test set have abundance >0
-## Find number of familes (rows with total of >1)
+## Find out if any of the families unique to the test set have abundance >0
 numfamtest=rowSums(famabundtest[,c(2:637)])
 sum(numfamtest > 0)# 311
 
 ## Make df for test fam names and total abund (across all rows)
 df1=as.data.frame(cbind(testfamnames,numfamtest))
-View(df1)
+#View(df1)
 
-## Subset df1 for only unique fam in test
+## Subset df1 for only unique families in test
 df2=df1[df1$testfamnames %in% uniquetestfam,]
-df2
-# Answer: 2 familes in test set ot present in train set (Laonidae = Gastropod (3) and Mimosellidae = Bryozoan (2))
-# percentage 2/703=0.28%
+df2 # Answer: 2 familes in test set not present in train set (Laonidae = Gastropod (3) and Mimosellidae = Bryozoan (2))
+# percentage 2/703=0.0028%
 
 
 
-#### TEST DATA: DF WITH SAME FAMILIES AS TRAIN DATA ####
+#### 10. TEST DATA: DF WITH SAME FAMILIES AS TRAIN DATA ####
 
-## Note that test data (df famabundtest) has 776 families, whereas train has only 703. Therefore we need to remove the additional families from test data for predict. Note that this doesn't mean the test data has 774 families as many rows (taxa) will have zero abundance.
+## Note that test data (df famabundtest) has 776 families, whereas train has only 703. Therefore we need to remove the additional families from test data for predict. Note that this doesn't mean the test data has 776 families as many rows (taxa) will have zero abundance.
 
 ## First create a dataframe for family names from the train data (df train.data5)
 template=colnames(train.data5)# this is a vector
@@ -625,15 +588,13 @@ dim(template)# 703 1
 #View(template)
 #write.csv(template, file="FaunalDataTemplate.csv")# this can be populated manualy if not using code below
 
-## Now need to create a version of the test data that only includes families from the train data
-# merge two data frames by ID. Merge keeps only the common columns
+## Now need to create a version of the test data that only includes families from the train data. Merge two data frames by Family (Merge keeps only the common columns)
 testfamall <- merge(template,famabundtest,by="Family")
 #View(testfamall)
-dim(testfamall)# should be 703 (taxa) and how ever many samples you have (in this case 441)
-class(testfamall)# df
-row.names(testfamall)
-str(testfamall)
-View(testfamall)
+
+## Check merge has worked as expected
+dim(testfamall)# should be 703 (taxa) and how ever many samples you have (in this case 636)
+#View(testfamall)
 
 ## Transpose df 'testfamall' so rows are samples and cols are variables. Note this changes object to a matrix.
 testfamallt=t(testfamall)
@@ -658,7 +619,6 @@ testfamallt2[] <- lapply(testfamallt2, function(x) as.numeric(as.character(x)))
 #str(testfamallt2)
 names(testfamallt2)
 
-
 ## Create a copy of the test data for trial use in Shiny app
 dim(testfamallt2)
 dim(test.raw2)
@@ -666,7 +626,6 @@ names(test.raw2)
 output=cbind(test.raw2[1],test.raw2[13536],test.raw2[13537],testfamallt2)
 names(output)
 write.csv(output,file = "OUTPUTS/ShinyTemplateCompleted.csv",row.names=FALSE)
-
 
 ## Create a blank template for use with R Shiny
 ShinyTemplate=testfamallt2[1,]
@@ -682,23 +641,17 @@ write.csv(ShinyTemplate,file = "OUTPUTS/ShinyTemplate.csv",row.names=FALSE)
 ## Transform the test data
 testfamallt3=testfamallt2^(0.25)
 
-## Create a df 'pos.test' for Sample, Latitude_WGS84 and Longitude_WGS84. NB/You may need to update the colrefs for Lat and Long 
+## Create a df 'pos.test' for Sample, Latitude_WGS84 and Longitude_WGS84. NB/You may need to update the colrefs for Lat and Long if using a different test dataset
 names(test.raw2)
 pos.test=test.raw2[,c(1,13536:13537)]
 
 ## Check names of df 'pos'
 names(pos.test)
-dim(pos.test)
+dim(pos.test) #636   3
 
 
 
-
-
-
-
-
-
-#### TEST DATA: IDENTIFY FAUNAL CLUSTER GROUPS ####
+#### 11. TEST DATA: IDENTIFY FAUNAL CLUSTER GROUPS ####
 
 ## Call library
 library("flexclust")
@@ -709,8 +662,6 @@ resultsA=as.kcca(results,datat)
 
 ## Save object 'resultsA' for use in Shiny app
 saveRDS(resultsA, file = "OUTPUTS/resultsA")
-#my_data <- readRDS("OUTPUTS/resultsA")
-#my_data
 
 ## Check predicted cluster groups are the same as those from clustering of training data set
 pred_train <- predict(resultsA)
@@ -719,14 +670,10 @@ pred_train # they are
 dim(datat)
 
 ## Now use predict function to predict cluster groups for test data.
-#pred_test <- predict(resultsA, newdata=testfamallt2[,1:703])#703 is the number of variable cols
-pred_test <- predict(resultsA, newdata=testfamallt3)#703 is the number of variable cols
+pred_test <- predict(resultsA, newdata=testfamallt3)
 pred_test 
 
-
-#View(pred_test)
-## Add cluster group from kmeans results file to df 'pos' which includes 'Sample',
-# 'Latitude_WGS84' and 'Longitude_WGS84'
+## Add cluster group from kmeans results file to df 'pos' which includes 'Sample', 'Latitude_WGS84' and 'Longitude_WGS84'
 faunal.cluster.test=cbind(pos.test,pred_test)
 names(faunal.cluster.test)
 
@@ -759,7 +706,8 @@ faunal.cluster.test$FaunalCluster=as.factor(faunal.cluster.test$FaunalCluster)
 #write.csv(faunal.cluster.test,file = "OUTPUTS/testcluster results.csv",row.names=TRUE)
 
 
-#### TEST DATA: DISTANCE TO CLUSTER CENTRES ####
+
+#### 12. TEST DATA: DISTANCE TO CLUSTER CENTRES ####
 
 ## Find distances to cluster centres
 #https://stackoverflow.com/questions/44137906/r-data-output-ordered-by-distance-from-cluster-center
@@ -787,9 +735,6 @@ str(DistancetoCentersTest)
 testsurveynames=as.character(test.raw2$Survey)
 DistancetoCentersTest2=cbind(testsurveynames,DistancetoCentersTest)
 colnames(DistancetoCentersTest2)[1]="Survey"
-#View(DistancetoCentersTest2)
-#class(DistancetoCentersTest2)
-#DistancetoCentersTest2=as.data.frame(DistancetoCentersTest2)
 
 ## Add column for faunal cluster group
 DistancetoCentersTest3=cbind(DistancetoCentersTest2[,1:2],faunal.cluster.test$FaunalCluster,DistancetoCentersTest2[,3:14])
@@ -848,18 +793,15 @@ DistancetoCentersTest4$pD2d=round(pnorm(DistancetoCentersTest4$zD2d)*100,1)
 #View(DistancetoCentersTest4)
 
 # Select stations from survey
-#NWJBMonCentres=DistancetoCentersTest4[ which(DistancetoCentersTest4$Survey=='NWJB'& DistancetoCentersTest4$FaunalCluster=='D2c'),] 
 NWJBMonCentres=DistancetoCentersTest4[ which(DistancetoCentersTest4$Survey=='NWJB'),] 
 #View(NWJBMonCentres)
-write.csv(NWJBMonCentres,file = "OUTPUTS/NWJBMonCentres.csv",row.names=F)
+#write.csv(NWJBMonCentres,file = "OUTPUTS/NWJBMonCentres.csv",row.names=F)
 
 
-#### TEST DATA: SAMPLE LOCATION MAP ####
 
-#names(test.raw2)
-#LOW HIGH
+#### 13. TEST DATA: SAMPLE LOCATION MAP ####
 
-## To see colours
+## Identify 6 distinct colours for use in map
 scales::show_col(scales::hue_pal()(6)) 
 #F8766D
 #B79F00
@@ -867,7 +809,6 @@ scales::show_col(scales::hue_pal()(6))
 #00BFC4
 #619CFF
 #F564E3
-
 
 ## Enter box coordinates 
 HHW=data.frame(x1=1.6390083, x2=2.2590820,y1=52.65830, y2=52.96870,t=c('a'), r=c("A"))
@@ -907,11 +848,12 @@ testloc1
 dev.off()
 
 
-#### TEST DATA: FAUNAL CLUSTER MAP ####
 
-## 1st create an inset map based on figure 2
+#### 14. TEST DATA: FAUNAL CLUSTER MAP ####
 
-## Enter box coordinates 
+## 1st create an inset map based on Figure 2
+
+## Enter box coordinates (bounding box for all test data plus small margin)
 testarea=data.frame(x1=-8.4109440, x2=2.5646310,y1=49.73386, y2=53.81136,t=c('a'), r=c("A"))
 
 ## Produce map
@@ -935,21 +877,13 @@ inset= ggplot()+
 #theme(axis.ticks = element_blank(),plot.margin = rep(unit(0,"null"),4))
   theme(axis.ticks = element_blank(),plot.margin = margin(0,0,0,0,"cm"))+
   theme(plot.background=element_rect(fill=NA, colour=NA))
-#
+
 
 inset2=inset+theme(legend.key.size = unit(1, "cm"))+
   guides(colour = guide_legend(override.aes = list(size=6)))
 
-## Save plot to an image file (png or tiff)
-
-#tiff("OUTPUTS/FIGURE 4a.tiff",width = 29.7,height = 42,units = "cm",res = 600,pointsize = 48)
+## View inset map
 inset2
-
-
-
-
-################
-
 
 ## Identify colours required for map below
 levels(faunal.cluster.test$FaunalCluster)#[1] "A1"  "A2a" "A2b" "C1a" "C1b" "D1"  "D2a" "D2b" "D2c" "D2d"
@@ -968,7 +902,7 @@ levels(faunal.cluster.test$FaunalCluster)#[1] "A1"  "A2a" "A2b" "C1a" "C1b" "D1"
 #D2d "#b4b404"
 
 
-## Produce map
+## Produce map showing cluster group identity of test samples
 p3= ggplot()+
   geom_polygon(data=defra.dem.df, aes(x=long, y=lat, group=group,fill=Depth))+
   scale_fill_manual(values=grey,name="Depth (m)",guide=FALSE)+
@@ -976,18 +910,11 @@ p3= ggplot()+
              size=0.8,show.legend = TRUE)+#size was 0.45,shape=3
   geom_polygon(data = euDF2, aes(x=long, y=lat, group = group),fill="white",colour="black",
                size=0.15)+
-  scale_colour_manual(values = c("blue2","cyan1","#05aae1","green3",
-                                 "palegreen1","#b40202","red1","darkorange","yellow",
-                                 "#b4b404"),name="Cluster")+
+  scale_colour_manual(values = c("blue2","cyan1","#05aae1","green3", "palegreen1","#b40202","red1","darkorange","yellow","#b4b404"),name="Cluster")+
   guides(colour = guide_legend(override.aes = list(size=3)))+ # Change size of legend dots
   coord_map(xlim = c(-8.4109440, 2.5646310),ylim = c(49.73386, 53.81136))+ #set x,y limits of plot
-  #coord_map(xlim = c(-10.7, 4),ylim = c(48, 62))+ #set x,y limits of plot
-  #coord_map(xlim = c(0, 3),ylim = c(52.5, 54))+ #set x,y limits of plot 
-  #coord_map(xlim = c(-1.5, -0.5),ylim = c(50.5, 51))+ #set x,y limits of plot#UTOPIA
   theme_bw(base_size = 18)+
   labs(x="Longitude",y="Latitude")#+
-  #theme(axis.title.y=element_blank(),axis.text.y=element_blank())#axis.title.x=element_blank() ,,axis.text.x=element_blank()
-
 
 testmap=p3+theme(legend.key.size = unit(0.75, "cm"))+
   guides(colour = guide_legend(override.aes = list(size=5)))
@@ -1002,24 +929,21 @@ levels(faunal.cluster.test$FaunalCluster)
 ## Plot Figure 3 for test sample faunal cluster groups with inset map for baseline data
 png(file="OUTPUTS/FIGURE 3.png",w=3300,h=1800, res=300) 
 grid.newpage() 
-#v1<-viewport(width = 1, height = 1, x = 0.5, y = 0.5) #plot area for the main map 
 v1<-viewport(width = 1, height = 1, x = 0.5, y = 0.5) #plot area for the main map 
-#v2<-viewport(width = 0.3, height = 0.3, x = 0.86, y = 0.28) #plot area for the inset map 
 v2<-viewport(width = 0.7, height = 0.6, x = 0.19, y = 0.665) #plot area for the inset map 
-
 print(testmap,vp=v1)  
 print(inset2,vp=v2) 
 dev.off() 
 
 
-#### TRAIN AND TEST SAMPLE TOGETHER ####
+#### 15. TRAIN AND TEST SAMPLE TOGETHER ####
 
 ## Identify washed out colours for the 12 faunal groups. Choose a lighter tint (5th from left, bottom row) of the parent colour (http://www.color-hex.com/color/e1e19a). HEX colours for 12 groups are:#0000EE,#00FFFF,#05AAC1,#EEAEEE,#9A32CD,#00CD00,#9AFF9A,#B40202,#FF0000,#FF8C00,#FFFF00,#B4B404
 
 ## Need to add test colours to bathy colours
 grey1=c("#F2F2F2","#EAEAEA","#B8B8B8","#909090","#E1E1E1","#ACACAC", "#808080","#D8D8D8","#CECECE","#C3C3C3","#9F9F9F","blue2","cyan1","#05aae1","green3","palegreen1","#b40202","red1","darkorange","yellow","#b4b404")
 
-## Produce map
+## Produce map (change coorinates for diferent sites)
 p2= ggplot()+
   geom_polygon(data=defra.dem.df, aes(x=long, y=lat, group=group,fill=Depth))+
   scale_fill_manual(values=grey1,name="Depth (m)",guide=FALSE)+
@@ -1051,7 +975,10 @@ png("OUTPUTS/FIGURE 3 HHW.png",width = 36,height = 23,units = "cm", res = 600)
 plot2
 dev.off()
 
-#### TRAIN & TEST MAP: IDRBNR ####
+
+
+#### 16. TRAIN & TEST MAP: IDRBNR ####
+
 IDRBNR= ggplot()+
   geom_polygon(data=defra.dem.df, aes(x=long, y=lat, group=group,fill=Depth))+
   scale_fill_manual(values=grey1,name="Depth (m)",guide=F)+
@@ -1069,7 +996,8 @@ IDRBNR= ggplot()+
 IDRBNR
 
 
-#### TRAIN & TEST MAP: HHW ####
+
+#### 17. TRAIN & TEST MAP: HHW ####
 
 HHW= ggplot()+
   geom_polygon(data=defra.dem.df, aes(x=long, y=lat, group=group,fill=Depth))+
@@ -1088,7 +1016,8 @@ HHW= ggplot()+
 HHW
 
 
-#### TRAIN & TEST MAP: NNSB ####
+
+#### 18. TRAIN & TEST MAP: NNSB ####
 
 NNSB= ggplot()+
   geom_polygon(data=defra.dem.df, aes(x=long, y=lat, group=group,fill=Depth))+
@@ -1107,7 +1036,8 @@ NNSB= ggplot()+
 NNSB
 
 
-#### TRAIN & TEST MAP: U ####
+
+#### 19. TRAIN & TEST MAP: U ####
 
 U= ggplot()+
   geom_polygon(data=defra.dem.df, aes(x=long, y=lat, group=group,fill=Depth))+
@@ -1123,10 +1053,12 @@ U= ggplot()+
   theme_bw(base_size = 20)+
   theme(axis.title.y=element_blank(),axis.title.x=element_blank())# axis.text.y=element_blank(),,axis.text.x=element_blank()
 
-
 U
 
-#### TRAIN & TEST MAP: NWJB ####
+
+
+#### 20. TRAIN & TEST MAP: NWJB ####
+
 NWJB= ggplot()+
   geom_polygon(data=defra.dem.df, aes(x=long, y=lat, group=group,fill=Depth))+
   scale_fill_manual(values=grey1,name="Depth (m)",guide=FALSE)+
@@ -1141,11 +1073,11 @@ NWJB= ggplot()+
   theme_bw(base_size = 20)+
   theme(axis.title.y=element_blank(),axis.title.x=element_blank())# axis.text.y=element_blank(),,axis.text.x=element_blank()
 
-
 NWJB
 
 
-#### TRAIN & TEST MAP: SCRSMP ####
+
+#### 21. TRAIN & TEST MAP: SCRSMP ####
 
 SCRSMP= ggplot()+
   geom_polygon(data=defra.dem.df, aes(x=long, y=lat, group=group,fill=Depth))+
@@ -1161,17 +1093,14 @@ SCRSMP= ggplot()+
   theme_bw(base_size = 20)+
   theme(axis.title.y=element_blank(),axis.title.x=element_blank())# axis.text.y=element_blank(),,axis.text.x=element_blank()
 
-
 SCRSMP
 
 
 
-## nOW PUT ALL SITE PLOTS TOGETHER (HORIZONTAL)
-library(cowplot)
+## 22. PRODUCE SINGLE FIGURE FOR ALL SITES (FIGURE 4)
 
 top=plot_grid(IDRBNR,SCRSMP, labels = c("a)","d)"),nrow=2, align='v',label_size = 22, hjust = 0.05)
-#bl=plot_grid(NNSB,NWJB, labels = c("c)","e)"), align='hv',label_size = 20)
-#br=plot_grid(HHW,U, labels = c("d)","f)"), align='hv',label_size = 20)
+
 bl=plot_grid(NNSB,NWJB, labels = c("b)","c)"), align='v',label_size = 22)
 br=plot_grid(HHW,U, labels = c("e)","f)"), align='v',label_size = 22)
 
@@ -1184,13 +1113,10 @@ f6=plot_grid(f5,NULL,ncol=1, rel_heights=c(1,0.06))
 f7=f6+draw_label("Longitude", x=0.5, y=  0, vjust=-0.5, angle= 0, size=22) +#
   draw_label("Latitude", x= 0, y=0.5, vjust= 1.5, angle=90, size=22)#
 
-
-## to get legend 
-#http://htmlpreview.github.io/?https://github.com/wilkelab/cowplot/blob/master/inst/doc/shared_legends.html
-# LEGEND STORED IN legendfclus
-
+## Add legend (stored in object 'legendfclus')
 p <- plot_grid(f7, legendfclus, ncol = 2, rel_widths = c(1, 0.1))
+
+## Save image as .png
 png("OUTPUTS/Figure_4.png",width=70, height=38, units="cm", res=400)#res=600
 p
 dev.off()
-
