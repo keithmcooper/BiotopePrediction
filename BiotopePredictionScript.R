@@ -1,6 +1,6 @@
 ####### R SCRIPT FOR ANALYSIS OF DATA IN COOPER (2019) #######
 
-##  Reference: Cooper, K.M. (2019) A new machine learning approach to seabed biotope classification. Journal of Applied Ecology
+##  Reference: Cooper, K.M. (2019) A new machine learning approach to seabed biotope classification. Science Advances
 
 ## Required Files:
 # 1. BiotopePredictionScript.R (i.e. this script. Available from: ?).
@@ -103,7 +103,7 @@ table(train.data$Survey)
 ## Subset data by gear (all 0.1m2 grabs)
 train.data2 = subset(train.data, Gear=="MHN" | Gear=="DG" | Gear=="VV" | Gear=="SM")
 
-## Check dimensions of df 'data2'
+## Check dimensions of df 'train.data2'
 dim(train.data2)# 32044 901
 
 ## subset by sieve size (1mm only)
@@ -112,13 +112,13 @@ train.data3 = subset(train.data2, Sieve=='1')
 ## Check dimensions of df 'train.data3'
 dim(train.data3)# 27622 901
 
-## Check names of df 'data3'to identify faunal data columns
+## Check names of df 'train.data3'to identify faunal data columns
 names(train.data3) # 2:775
 
-## Remove samples from the faunal data (df data3) where no fauna present
+## Remove samples from the faunal data (df train.data3) where no fauna present
 train.data4 = train.data3[ rowSums(train.data3[,2:775])!=0, ]
 
-## Check dimensions of df 'data4'
+## Check dimensions of df 'train.data4'
 dim(train.data4)#27432 901
 
 ## Identify (usinig the .csv file) variables with no abundance
@@ -131,22 +131,22 @@ train.data4.5 <- train.data4[-c(4,21,32,40,47,57,100,153,157,167,172,175,177,200
                                 448,459,460,469,474,485,486,489,505,508,509,528,556,558,575,578,598,601,
                                 603,605,607,630,633,638,647,675,687,705,709,726,734,760,765,775)]
 
-## Check dimensions of df 'data4.5'
+## Check dimensions of df 'train.data4.5'
 dim(train.data4.5)# 27432 830
 
-## Show names of df 'data4.5'
+## Show names of df 'train.data4.5'
 names(train.data4.5)  
 
 ## Faunal subset (ie remove Sample,Latitude_WGS84, Longitude_WGS84, month and year)
 train.data5=train.data4.5[,2:704]
 
-## Check dimensions of df 'data5'
+## Check dimensions of df 'train.data5'
 dim(train.data5) #27432 703
 
-## Check df 'data5' is just the faunal data
+## Check df 'train.data5' is just the faunal data
 names(train.data5)# it is
 
-## Change class of df data5 to a matrix
+## Change class of df 'train.data5' to a matrix
 data6=data.matrix(train.data5)
 
 ## Create a df 'pos' for Sample, Latitude_WGS84 and Longitude_WGS84 
@@ -182,7 +182,7 @@ faunal.cluster=cbind(pos,results$cluster)
 ## Change name of col 'results$cluster' to 'ClusterNum'
 names(faunal.cluster)[4]<-paste("ClusterNum")
 
-## Add a new empty col 'FaunalCluster' to df 'faunal.cluster
+## Add a new empty col 'FaunalCluster' to df 'faunal.cluster'
 faunal.cluster["FaunalCluster"]=NA
 
 ## Populate FaunalCluster col with new names (see faunal dendrogram in Cooper and Barry, 2017 (step 21))
@@ -490,7 +490,7 @@ dim(test.raw2) # 636 13668
 test.raw2$SurveyName=as.factor(test.raw2$SurveyName)
 levels(test.raw2$SurveyName)
 
-## Add col for SurveyName summary (to use with plots as full names too long)
+## Add col for brief SurveyName (to use with plots as full names too long)
 test.raw2$Survey=as.character(test.raw2$SurveyName)
 
 ## Populate FaunalCluster col with new names (see dendrogram from Step 21)
@@ -501,7 +501,7 @@ test.raw2$Survey[test.raw2$Survey == "NWJB2017"] <- "NWJB"
 test.raw2$Survey[test.raw2$Survey == "South Coast Regional Seabed Monitoring Programme 2017/2018"] <- "SCRSMP"
 test.raw2$Survey[test.raw2$Survey == "Utopia2016"] <- "U"
 
-## Make test.raw2$SurveyNameShort a factor
+## Make test.raw2$Survey a factor
 test.raw2$Survey=as.factor(test.raw2$Survey)
 
 ## Get number of samples by Survey (Table 1)
@@ -548,7 +548,7 @@ famabundtest=aggregate(. ~ Family, all2fam, sum)
 ## Check number of columns has reduced
 dim(famabundtest)# 776 families 637 cols
 
-## Find number of familes (rows with total of >1)
+## Find number of families (rows with total of >1)
 numfamtest=rowSums(famabundtest[,c(2:637)])
 sum(numfamtest > 0)# 311
 
@@ -956,7 +956,7 @@ dev.off()
 ## Need to add test colours to bathy colours
 grey1=c("#F2F2F2","#EAEAEA","#B8B8B8","#909090","#E1E1E1","#ACACAC", "#808080","#D8D8D8","#CECECE","#C3C3C3","#9F9F9F","blue2","cyan1","#05aae1","green3","palegreen1","#b40202","red1","darkorange","yellow","#b4b404")
 
-## Produce map (change coorinates for diferent sites)
+## Produce map (change coordinates for different sites)
 p2= ggplot()+
   geom_polygon(data=defra.dem.df, aes(x=long, y=lat, group=group,fill=Depth))+
   scale_fill_manual(values=grey1,name="Depth (m)",guide=FALSE)+
@@ -981,12 +981,9 @@ p2= ggplot()+
 plot2=p2+theme(legend.key.size = unit(1, "cm"))+
   guides(colour = guide_legend(override.aes = list(alpha=1,size=6)))
 
-
-## Save plot to an image file (png or tiff)
-png("OUTPUTS/FIGURE 3 HHW.png",width = 36,height = 23,units = "cm", res = 600)
-#tiff("OUTPUTS/FIGURE 4a.tiff",width = 29.7,height = 42,units = "cm",res = 600,pointsize = 48)
 plot2
-dev.off()
+
+## Use above code to produce maps for the different test sites (below) 
 
 
 
