@@ -3,13 +3,13 @@
 ##  Reference: Cooper, K.M. (2019) A new machine learning approach to seabed biotope classification. Science Advances
 
 ## Required Files:
-# 1. BiotopePredictionScript.R (i.e. this script. Available from: ?).
-# 2. EUROPE.shp (European Coastline) (Available from https://doi.org/10.14466/CefasDataHub.34)
-# 3. EuropeLiteScoWal.shp (European Coastline with UK boundaries) (Available from https://doi.org/10.14466/CefasDataHub.34)
-# 4. DEFRADEMKC8.shp (Seabed bathymetry) (Available from https://doi.org/10.14466/CefasDataHub.34)
+# 1. BiotopePredictionScript.R (i.e. this script. Available from https://doi.org/10.14466/CefasDataHub.72).
+# 2. EUROPE.shp (European Coastline) (Available from https://doi.org/10.14466/CefasDataHub.72)
+# 3. EuropeLiteScoWal.shp (European Coastline with UK boundaries) (https://doi.org/10.14466/CefasDataHub.72)
+# 4. DEFRADEMKC8.shp (Seabed bathymetry) (Available from https://doi.org/10.14466/CefasDataHub.72)
 # 5. C5922DATASETFAM13022017.csv (Training dataset) (Available from https://doi.org/10.14466/CefasDataHub.34)
-# 6. PARTC16112018.csv (Test dataset) (Available from ?)
-# 7. PARTCAGG16112018.csv (Available from ?)
+# 6. PARTC16112018.csv (Test dataset) (Available from https://doi.org/10.14466/CefasDataHub.72)
+# 7. PARTCAGG16112018.csv (Aggregation data) (Available from https://doi.org/10.14466/CefasDataHub.72)
 
 ## Required folder structure:
 # C:\BiotopePrediction
@@ -226,11 +226,10 @@ fig4a=p2+theme(legend.key.size = unit(1, "cm"))+
   guides(colour = guide_legend(override.aes = list(size=6)))
 
 ## Save plot to an image file (png or tiff)
-png("OUTPUTS/FIGURE 2.png",width = 29.7,height = 42,units = "cm", res = 600,
-    pointsize = 48)
+#png("OUTPUTS/FIGURE 2.png",width = 29.7,height = 42,units = "cm", res = 600,pointsize = 48)
 #tiff("OUTPUTS/FIGURE 4a.tiff",width = 29.7,height = 42,units = "cm",res = 600,pointsize = 48)
 fig4a
-dev.off()
+#dev.off()
 
 ## Save legend for use in Figure 4 see http://htmlpreview.github.io/?https://github.com/wilkelab/cowplot/blob/master/inst/doc/shared_legends.html)
 legendfclus <- get_legend(p2 + theme_bw(base_size=24)+ guides(colour = guide_legend(override.aes = list(size=8))))
@@ -722,9 +721,11 @@ faunal.cluster.test$FaunalCluster=as.factor(faunal.cluster.test$FaunalCluster)
 ## Try to produce a pca? showing cluster space with train ad test samples overlaid
 #https://stackoverflow.com/questions/20621250/simple-approach-to-assigning-clusters-for-new-data-after-k-means-clustering
 cl1 = kcca(datat, k=12, kccaFamily("kmeans"))
+cl1 = kcca(datat[,1:200], k=12, kccaFamily("kmeans"))
 col=c("blue2","cyan1","#05aae1","plum2","darkorchid3","green3","palegreen1","#b40202","red1","darkorange","yellow","#b4b404")
 image(cl1,xlim=c(-0.2, 1.2), ylim=c(-0.5, 1.5),col=col)
-
+image(cl1,col=col)
+image(cl1)
 pred_train <- predict(cl1)
 
 points(datat, col=col, pch=19, cex=0.3)
@@ -872,10 +873,18 @@ testloc1
 dev.off()
 
 
+#### TRAIN AND TEST: FAUNAL CLUSTER TRAIN AND TEST SAMPLE LOCATIONS (FIGURE 1) ####
 
-#### 14. TEST DATA: FAUNAL CLUSTER MAP ####
+## Save image as .png
+png("OUTPUTS/FIGURE 1.png",width=58, height=37, units="cm", res=800)
+#tiff("OUTPUTS/FIGURE 4.tiff",width=58, height=37, units="cm", res=800)
+plot_grid(fig4a, testloc1, labels = c("a)","b)"),nrow = 1,label_size = 24)  
+dev.off()
 
-## 1st create an inset map based on Figure 2
+
+#### 14. TEST DATA: FAUNAL CLUSTER MAP (FIGURE 3) ####
+
+## 1st create an inset map based on Figure 1a
 
 ## Enter box coordinates (bounding box for all test data plus small margin)
 testarea=data.frame(x1=-8.4109440, x2=2.5646310,y1=49.73386, y2=53.81136,t=c('a'), r=c("A"))
@@ -943,10 +952,9 @@ p3= ggplot()+
 testmap=p3+theme(legend.key.size = unit(0.75, "cm"))+
   guides(colour = guide_legend(override.aes = list(size=5)))
 
-png("OUTPUTS/FIGURE test data with Utopia.png",width = 29.7,height = 42,units = "cm", res = 600,
-    pointsize = 48)
+
 testmap
-dev.off()
+
 
 levels(faunal.cluster.test$FaunalCluster)
 
@@ -1138,6 +1146,6 @@ f7=f6+draw_label("Longitude", x=0.5, y=  0, vjust=-0.5, angle= 0, size=22) +#
 p <- plot_grid(f7, legendfclus, ncol = 2, rel_widths = c(1, 0.1))
 
 ## Save image as .png
-png("OUTPUTS/Figure_4.png",width=70, height=38, units="cm", res=400)#res=600
+png("OUTPUTS/FIGURE 4.png",width=70, height=38, units="cm", res=400)#res=600
 p
 dev.off()
