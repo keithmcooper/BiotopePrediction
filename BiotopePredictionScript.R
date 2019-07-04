@@ -718,7 +718,18 @@ faunal.cluster.test$FaunalCluster=as.factor(faunal.cluster.test$FaunalCluster)
 #View(faunal.cluster.test)
 #write.csv(faunal.cluster.test,file = "OUTPUTS/testcluster results.csv",row.names=TRUE)
 
+#####################################
+## Try to produce a pca? showing cluster space with train ad test samples overlaid
+#https://stackoverflow.com/questions/20621250/simple-approach-to-assigning-clusters-for-new-data-after-k-means-clustering
+cl1 = kcca(datat, k=12, kccaFamily("kmeans"))
+col=c("blue2","cyan1","#05aae1","plum2","darkorchid3","green3","palegreen1","#b40202","red1","darkorange","yellow","#b4b404")
+image(cl1,xlim=c(-0.2, 1.2), ylim=c(-0.5, 1.5),col=col)
 
+pred_train <- predict(cl1)
+
+points(datat, col=col, pch=19, cex=0.3)
+
+#####################################
 
 #### 12. TEST DATA: DISTANCE TO CLUSTER CENTRES ####
 
