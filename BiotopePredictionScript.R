@@ -22,7 +22,7 @@
 # C:\FINAL\DATA (files 2:7)
 # C:\FINAL\OUTPUTS (.png and .csv files resulting from script)
 
-## Notes: Ths script matches new faunal data to the existing faunal cluster groups identified in Cooper and Barry (2017) and will generate the figures and content of tables in Cooper (2019). The script is divided into 22 individual steps. 
+## Notes: Ths script matches new macrofaunal data to the existing macrofaunal cluster groups identified in Cooper and Barry (2017) and will generate figures and table contents in Cooper (2019). The script is divided into 22 individual steps. 
 
 ## Set working directory
 setwd('C:/Users/kmc00/OneDrive - CEFAS/R_PROJECTS/BiotopePrediction')
@@ -35,6 +35,7 @@ library(plyr)
 library(sf)
 library(methods)
 library(cowplot)
+
 
 
 #### 1. PREPARE MAPPING LAYERS ####
@@ -222,13 +223,13 @@ p2= ggplot()+
   theme_bw(base_size = 24)+ 
   labs(x="Longitude",y="Latitude")
 
-fig4a=p2+theme(legend.key.size = unit(1, "cm"))+
+fig1a=p2+theme(legend.key.size = unit(1, "cm"))+
   guides(colour = guide_legend(override.aes = list(size=6)))
 
 ## Save plot to an image file (png or tiff)
 #png("OUTPUTS/FIGURE 2.png",width = 29.7,height = 42,units = "cm", res = 600,pointsize = 48)
 #tiff("OUTPUTS/FIGURE 4a.tiff",width = 29.7,height = 42,units = "cm",res = 600,pointsize = 48)
-fig4a
+fig1a
 #dev.off()
 
 ## Save legend for use in Figure 4 see http://htmlpreview.github.io/?https://github.com/wilkelab/cowplot/blob/master/inst/doc/shared_legends.html)
@@ -239,7 +240,7 @@ plot(legendfclus)
 
 #### 7. TRAIN DATA: DISTANCE TO CLUSTER CENTRES ####
 
-## Find distances to cluster centre
+## Find distances to cluster centres
 #see https://stackoverflow.com/questions/44137906/r-data-output-ordered-by-distance-from-cluster-center
 DistancesToCentersp1 <- as.matrix(dist(rbind(results$centers, datat[1:5000,])))[-(1:12),1:12]
 DistancesToCentersp2 <- as.matrix(dist(rbind(results$centers, datat[5001:10000,])))[-(1:12),1:12]
@@ -717,20 +718,7 @@ faunal.cluster.test$FaunalCluster=as.factor(faunal.cluster.test$FaunalCluster)
 #View(faunal.cluster.test)
 #write.csv(faunal.cluster.test,file = "OUTPUTS/testcluster results.csv",row.names=TRUE)
 
-#####################################
-## Try to produce a pca? showing cluster space with train ad test samples overlaid
-#https://stackoverflow.com/questions/20621250/simple-approach-to-assigning-clusters-for-new-data-after-k-means-clustering
-cl1 = kcca(datat, k=12, kccaFamily("kmeans"))
-cl1 = kcca(datat[,1:200], k=12, kccaFamily("kmeans"))
-col=c("blue2","cyan1","#05aae1","plum2","darkorchid3","green3","palegreen1","#b40202","red1","darkorange","yellow","#b4b404")
-image(cl1,xlim=c(-0.2, 1.2), ylim=c(-0.5, 1.5),col=col)
-image(cl1,col=col)
-image(cl1)
-pred_train <- predict(cl1)
 
-points(datat, col=col, pch=19, cex=0.3)
-
-#####################################
 
 #### 12. TEST DATA: DISTANCE TO CLUSTER CENTRES ####
 
@@ -867,13 +855,11 @@ testloc= ggplot()+
 testloc1=testloc+theme(legend.key.size = unit(1, "cm"))+
   guides(colour = guide_legend(override.aes = list(size=6)))
 
-png("OUTPUTS/FIGURE 1.png",width = 29.7,height = 40,units = "cm", res = 600,
-    pointsize = 48)
 testloc1
-dev.off()
 
 
-#### TRAIN AND TEST: FAUNAL CLUSTER TRAIN AND TEST SAMPLE LOCATIONS (FIGURE 1) ####
+
+#### 14. TRAIN AND TEST: FAUNAL CLUSTER TRAIN AND TEST SAMPLE LOCATIONS (FIGURE 1) ####
 
 ## Save image as .png
 png("OUTPUTS/FIGURE 1.png",width=58, height=37, units="cm", res=800)
@@ -882,7 +868,8 @@ plot_grid(fig4a, testloc1, labels = c("a)","b)"),nrow = 1,label_size = 24)
 dev.off()
 
 
-#### 14. TEST DATA: FAUNAL CLUSTER MAP (FIGURE 3) ####
+
+#### 15. TEST DATA: FAUNAL CLUSTER MAP (FIGURE 3) ####
 
 ## 1st create an inset map based on Figure 1a
 
@@ -952,7 +939,6 @@ p3= ggplot()+
 testmap=p3+theme(legend.key.size = unit(0.75, "cm"))+
   guides(colour = guide_legend(override.aes = list(size=5)))
 
-
 testmap
 
 
@@ -968,7 +954,7 @@ print(inset2,vp=v2)
 dev.off() 
 
 
-#### 15. TRAIN AND TEST SAMPLE TOGETHER ####
+#### 16. TRAIN AND TEST SAMPLE TOGETHER ####
 
 ## Identify washed out colours for the 12 faunal groups. Choose a lighter tint (5th from left, bottom row) of the parent colour (http://www.color-hex.com/color/e1e19a). HEX colours for 12 groups are:#0000EE,#00FFFF,#05AAC1,#EEAEEE,#9A32CD,#00CD00,#9AFF9A,#B40202,#FF0000,#FF8C00,#FFFF00,#B4B404
 
@@ -1006,7 +992,7 @@ plot2
 
 
 
-#### 16. TRAIN & TEST MAP: IDRBNR ####
+#### 17. TRAIN & TEST MAP: IDRBNR ####
 
 IDRBNR= ggplot()+
   geom_polygon(data=defra.dem.df, aes(x=long, y=lat, group=group,fill=Depth))+
@@ -1026,7 +1012,7 @@ IDRBNR
 
 
 
-#### 17. TRAIN & TEST MAP: HHW ####
+#### 18. TRAIN & TEST MAP: HHW ####
 
 HHW= ggplot()+
   geom_polygon(data=defra.dem.df, aes(x=long, y=lat, group=group,fill=Depth))+
@@ -1046,7 +1032,7 @@ HHW
 
 
 
-#### 18. TRAIN & TEST MAP: NNSB ####
+#### 19. TRAIN & TEST MAP: NNSB ####
 
 NNSB= ggplot()+
   geom_polygon(data=defra.dem.df, aes(x=long, y=lat, group=group,fill=Depth))+
@@ -1066,7 +1052,7 @@ NNSB
 
 
 
-#### 19. TRAIN & TEST MAP: U ####
+#### 20. TRAIN & TEST MAP: U ####
 
 U= ggplot()+
   geom_polygon(data=defra.dem.df, aes(x=long, y=lat, group=group,fill=Depth))+
@@ -1086,7 +1072,7 @@ U
 
 
 
-#### 20. TRAIN & TEST MAP: NWJB ####
+#### 21. TRAIN & TEST MAP: NWJB ####
 
 NWJB= ggplot()+
   geom_polygon(data=defra.dem.df, aes(x=long, y=lat, group=group,fill=Depth))+
@@ -1106,7 +1092,7 @@ NWJB
 
 
 
-#### 21. TRAIN & TEST MAP: SCRSMP ####
+#### 22. TRAIN & TEST MAP: SCRSMP ####
 
 SCRSMP= ggplot()+
   geom_polygon(data=defra.dem.df, aes(x=long, y=lat, group=group,fill=Depth))+
@@ -1126,7 +1112,7 @@ SCRSMP
 
 
 
-## 22. PRODUCE SINGLE FIGURE FOR ALL SITES (FIGURE 4)
+## 23. PRODUCE SINGLE FIGURE FOR ALL SITES (FIGURE 4)
 
 top=plot_grid(IDRBNR,SCRSMP, labels = c("a)","d)"),nrow=2, align='v',label_size = 22, hjust = 0.05)
 
