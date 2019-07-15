@@ -381,6 +381,21 @@ distsfor10 = apply(train10, 1, f1, z=results$centers[10,])
 distsfor11 = apply(train11, 1, f1, z=results$centers[11,])
 distsfor12 = apply(train12, 1, f1, z=results$centers[12,])
 
+##Save distances for use in app
+#View(distsfor12)
+write.csv(distsfor1,file = "OUTPUTS/distsfor1.csv",row.names=F)
+write.csv(distsfor2,file = "OUTPUTS/distsfor2.csv",row.names=F)
+write.csv(distsfor3,file = "OUTPUTS/distsfor3.csv",row.names=F)
+write.csv(distsfor4,file = "OUTPUTS/distsfor4.csv",row.names=F)
+write.csv(distsfor5,file = "OUTPUTS/distsfor5.csv",row.names=F)
+write.csv(distsfor6,file = "OUTPUTS/distsfor6.csv",row.names=F)
+write.csv(distsfor7,file = "OUTPUTS/distsfor7.csv",row.names=F)
+write.csv(distsfor8,file = "OUTPUTS/distsfor8.csv",row.names=F)
+write.csv(distsfor9,file = "OUTPUTS/distsfor9.csv",row.names=F)
+write.csv(distsfor10,file = "OUTPUTS/distsfor10.csv",row.names=F)
+write.csv(distsfor11,file = "OUTPUTS/distsfor11.csv",row.names=F)
+write.csv(distsfor12,file = "OUTPUTS/distsfor12.csv",row.names=F)
+
 
 
 #### 9. TRAIN DATA: PERCENTILES ####
