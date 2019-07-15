@@ -274,35 +274,125 @@ colnames(DistancetoCentersTrain3)[3] <- "FaunalCluster"
 class(DistancetoCentersTrain3) # matrix
 DistancetoCentersTrain3=as.data.frame(DistancetoCentersTrain3)
 
+## Create a copy of the data 'DistancetoCentersTrain3'
+DistancetoCentersTrain5=DistancetoCentersTrain3
+
 ## Change column format
-DistancetoCentersTrain3$Survey <- as.character(as.character(DistancetoCentersTrain3$Survey))
-DistancetoCentersTrain3$Sample <- as.character(as.character(DistancetoCentersTrain3$Sample))
-DistancetoCentersTrain3$FaunalCluster <- as.character(as.character(DistancetoCentersTrain3$FaunalCluster))
-DistancetoCentersTrain3$A1 <- as.numeric(as.character(DistancetoCentersTrain3$A1))
-DistancetoCentersTrain3$A2a <- as.numeric(as.character(DistancetoCentersTrain3$A2a))
-DistancetoCentersTrain3$A2b <- as.numeric(as.character(DistancetoCentersTrain3$A2b))
-DistancetoCentersTrain3$B1a <- as.numeric(as.character(DistancetoCentersTrain3$B1a))
-DistancetoCentersTrain3$B1b <- as.numeric(as.character(DistancetoCentersTrain3$B1b))
-DistancetoCentersTrain3$C1a <- as.numeric(as.character(DistancetoCentersTrain3$C1a))
-DistancetoCentersTrain3$C1b <- as.numeric(as.character(DistancetoCentersTrain3$C1b))
-DistancetoCentersTrain3$D1 <- as.numeric(as.character(DistancetoCentersTrain3$D1))
-DistancetoCentersTrain3$D2a <- as.numeric(as.character(DistancetoCentersTrain3$D2a))
-DistancetoCentersTrain3$D2b <- as.numeric(as.character(DistancetoCentersTrain3$D2b))
-DistancetoCentersTrain3$D2c <- as.numeric(as.character(DistancetoCentersTrain3$D2c))
-DistancetoCentersTrain3$D2d <- as.numeric(as.character(DistancetoCentersTrain3$D2d))
+DistancetoCentersTrain5$Survey <- as.character(as.character(DistancetoCentersTrain5$Survey))
+DistancetoCentersTrain5$Sample <- as.character(as.character(DistancetoCentersTrain5$Sample))
+DistancetoCentersTrain5$FaunalCluster <- as.character(as.character(DistancetoCentersTrain5$FaunalCluster))
+DistancetoCentersTrain5$A1 <- as.numeric(as.character(DistancetoCentersTrain5$A1))
+DistancetoCentersTrain5$A2a <- as.numeric(as.character(DistancetoCentersTrain5$A2a))
+DistancetoCentersTrain5$A2b <- as.numeric(as.character(DistancetoCentersTrain5$A2b))
+DistancetoCentersTrain5$B1a <- as.numeric(as.character(DistancetoCentersTrain5$B1a))
+DistancetoCentersTrain5$B1b <- as.numeric(as.character(DistancetoCentersTrain5$B1b))
+DistancetoCentersTrain5$C1a <- as.numeric(as.character(DistancetoCentersTrain5$C1a))
+DistancetoCentersTrain5$C1b <- as.numeric(as.character(DistancetoCentersTrain5$C1b))
+DistancetoCentersTrain5$D1 <- as.numeric(as.character(DistancetoCentersTrain5$D1))
+DistancetoCentersTrain5$D2a <- as.numeric(as.character(DistancetoCentersTrain5$D2a))
+DistancetoCentersTrain5$D2b <- as.numeric(as.character(DistancetoCentersTrain5$D2b))
+DistancetoCentersTrain5$D2c <- as.numeric(as.character(DistancetoCentersTrain5$D2c))
+DistancetoCentersTrain5$D2d <- as.numeric(as.character(DistancetoCentersTrain5$D2d))
 
-## Creat a df equivalent to DistanceToClusterCentres6.csv
+## Create subsets of the data by cluster group 
+A1dist=subset(DistancetoCentersTrain5, FaunalCluster=="A1")
+A2adist=subset(DistancetoCentersTrain5, FaunalCluster=="A2a")
+A2bdist=subset(DistancetoCentersTrain5, FaunalCluster=="A2b")
+B1adist=subset(DistancetoCentersTrain5, FaunalCluster=="B1a")
+B1bdist=subset(DistancetoCentersTrain5, FaunalCluster=="B1b")
+C1adist=subset(DistancetoCentersTrain5, FaunalCluster=="C1a")
+C1bdist=subset(DistancetoCentersTrain5, FaunalCluster=="C1b")
+D1dist=subset(DistancetoCentersTrain5, FaunalCluster=="D1")
+D2adist=subset(DistancetoCentersTrain5, FaunalCluster=="D2a")
+D2bdist=subset(DistancetoCentersTrain5, FaunalCluster=="D2b")
+D2cdist=subset(DistancetoCentersTrain5, FaunalCluster=="D2c")
+D2ddist=subset(DistancetoCentersTrain5, FaunalCluster=="D2d")
 
+## Take only relevant columns for later calculation of mean and sd (change these nos if inc phy clus grp)
+A1dist=A1dist[,1:4]
+A2adist=A2adist[,c(1:3,5)]
+A2bdist=A2bdist[,c(1:3,6)]
+B1adist=B1adist[,c(1:3,7)]
+B1bdist=B1bdist[,c(1:3,8)]
+C1adist=C1adist[,c(1:3,9)]
+C1bdist=C1bdist[,c(1:3,10)]
+D1dist=D1dist[,c(1:3,11)]
+D2adist=D2adist[,c(1:3,12)]
+D2bdist=D2bdist[,c(1:3,13)]
+D2cdist=D2cdist[,c(1:3,14)]
+D2ddist=D2ddist[,c(1:3,15)]
 
+## Get mean and sd
+meanA1dist=mean(A1dist$A1)
+sdA1dist=sqrt(var(A1dist$A1))
 
+meanA2adist=mean(A2adist$A2a)
+sdA2adist=sqrt(var(A2adist$A2a))
 
+meanA2bdist=mean(A2bdist$A2b)
+sdA2bdist=sqrt(var(A2bdist$A2b))
 
+meanB1adist=mean(B1adist$B1a)
+sdB1adist=sqrt(var(B1adist$B1a))
 
+meanB1bdist=mean(B1bdist$B1b)
+sdB1bdist=sqrt(var(B1bdist$B1b))
 
+meanC1adist=mean(C1adist$C1a)
+sdC1adist=sqrt(var(C1adist$C1a))
 
+meanC1bdist=mean(C1bdist$C1b)
+sdC1bdist=sqrt(var(C1bdist$C1b))
 
+meanD1dist=mean(D1dist$D1)
+sdD1dist=sqrt(var(D1dist$D1))
 
+meanD2adist=mean(D2adist$D2a)
+sdD2adist=sqrt(var(D2adist$D2a))
 
+meanD2bdist=mean(D2bdist$D2b)
+sdD2bdist=sqrt(var(D2bdist$D2b))
+
+meanD2cdist=mean(D2cdist$D2c)
+sdD2cdist=sqrt(var(D2cdist$D2c))
+
+meanD2ddist=mean(D2ddist$D2d)
+sdD2ddist=sqrt(var(D2ddist$D2d))
+
+## Create a copy of the data 'DistancetoCentersTrain5'
+DistancetoCentersTrain6=DistancetoCentersTrain5
+
+## Calculate z-scores
+DistancetoCentersTrain6$zA1=(DistancetoCentersTrain6$A1-meanA1dist)/sdA1dist
+DistancetoCentersTrain6$zA2a=(DistancetoCentersTrain6$A2a-meanA2adist)/sdA2adist
+DistancetoCentersTrain6$zA2b=(DistancetoCentersTrain6$A2b-meanA2bdist)/sdA2bdist
+DistancetoCentersTrain6$zB1a=(DistancetoCentersTrain6$B1a-meanB1adist)/sdB1adist
+DistancetoCentersTrain6$zB1b=(DistancetoCentersTrain6$B1b-meanB1bdist)/sdB1bdist
+DistancetoCentersTrain6$zC1a=(DistancetoCentersTrain6$C1a-meanC1adist)/sdC1adist
+DistancetoCentersTrain6$zC1b=(DistancetoCentersTrain6$C1b-meanC1bdist)/sdC1bdist
+DistancetoCentersTrain6$zD1=(DistancetoCentersTrain6$D1-meanD1dist)/sdD1dist
+DistancetoCentersTrain6$zD2a=(DistancetoCentersTrain6$D2a-meanD2adist)/sdD2adist
+DistancetoCentersTrain6$zD2b=(DistancetoCentersTrain6$D2b-meanD2bdist)/sdD2bdist
+DistancetoCentersTrain6$zD2c=(DistancetoCentersTrain6$D2c-meanD2cdist)/sdD2cdist
+DistancetoCentersTrain6$zD2d=(DistancetoCentersTrain6$D2d-meanD2ddist)/sdD2ddist
+
+## Calculate z-scores percentiles
+DistancetoCentersTrain6$pA1=round(pnorm(DistancetoCentersTrain6$zA1)*100,1)
+DistancetoCentersTrain6$pA2a=round(pnorm(DistancetoCentersTrain6$zA2a)*100,1)
+DistancetoCentersTrain6$pA2b=round(pnorm(DistancetoCentersTrain6$zA2b)*100,1)
+DistancetoCentersTrain6$pB1a=round(pnorm(DistancetoCentersTrain6$zB1a)*100,1)
+DistancetoCentersTrain6$pB1b=round(pnorm(DistancetoCentersTrain6$zB1b)*100,1)
+DistancetoCentersTrain6$pC1a=round(pnorm(DistancetoCentersTrain6$zC1a)*100,1)
+DistancetoCentersTrain6$pC1b=round(pnorm(DistancetoCentersTrain6$zC1b)*100,1)
+DistancetoCentersTrain6$pD1=round(pnorm(DistancetoCentersTrain6$zD1)*100,1)
+DistancetoCentersTrain6$pD2a=round(pnorm(DistancetoCentersTrain6$zD2a)*100,1)
+DistancetoCentersTrain6$pD2b=round(pnorm(DistancetoCentersTrain6$zD2b)*100,1)
+DistancetoCentersTrain6$pD2c=round(pnorm(DistancetoCentersTrain6$zD2c)*100,1)
+DistancetoCentersTrain6$pD2d=round(pnorm(DistancetoCentersTrain6$zD2d)*100,1)
+
+## Select only samples belonging to chosen cluster and produce histogram
+D2cclusdist=DistancetoCentersTrain6[ which(DistancetoCentersTrain6$FaunalCluster=='D2c'),]
+hist(D2cclusdist$zD2c,breaks=40)
 
 ## Need to add gear to object 'DistancetoCentersTrain6'
 names(DistancetoCentersTrain6)
