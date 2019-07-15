@@ -291,44 +291,218 @@ DistancetoCentersTrain3$D2b <- as.numeric(as.character(DistancetoCentersTrain3$D
 DistancetoCentersTrain3$D2c <- as.numeric(as.character(DistancetoCentersTrain3$D2c))
 DistancetoCentersTrain3$D2d <- as.numeric(as.character(DistancetoCentersTrain3$D2d))
 
-## Creat a df equivalent to DistanceToClusterCentres6.csv
+
+#### 8. TRAIN DATA: SUBSET DISTANCES BY CLUSTER GROUP ####
+
+
+## Start by making subsets of the train data (train1, train2, train3 etc). Also find number of samples in each cluster (l1, l2, l3 etc)
+use = results$cluster == 1  # Boolean true/false sample belongs to cluster group 1
+train1 = datat[use,] # train data for samples belonging to cluster group 1
+l1 = sum(use) #number of samples in cluster grp 1 (707)
+
+use = results$cluster == 2
+train2 = datat[use,]
+l2 = sum(use)
+
+use = results$cluster == 3
+train3 = datat[use,]
+l3 = sum(use)
+
+use = results$cluster == 4
+train4 = datat[use,]
+l4 = sum(use)
+
+use = results$cluster == 5
+train5 = datat[use,]
+l5 = sum(use)
+
+use = results$cluster == 6            
+train6 = datat[use,]
+l6 = sum(use)
+
+use = results$cluster == 7
+train7 = datat[use,]
+l7 = sum(use)
+
+use = results$cluster == 8
+train8 = datat[use,]
+l8 = sum(use)
+
+use = results$cluster == 9
+train9 = datat[use,]
+l9 = sum(use)
+
+use = results$cluster == 10
+train10 = datat[use,]
+l10 = sum(use)
+
+use = results$cluster == 11
+train11 = datat[use,]
+l11 = sum(use)
+
+use = results$cluster == 12
+train12 = datat[use,]
+l12 = sum(use)
+
+## Create empty numeric vector to hold distances
+distsfor1 = rep(0,l1) # empty numeric vector for number of samples in cluster 1
+distsfor2 = rep(0,l2)
+distsfor3 = rep(0,l3)
+distsfor4 = rep(0,l4)
+distsfor5 = rep(0,l5)
+distsfor6 = rep(0,l6)
+distsfor7 = rep(0,l7)
+distsfor8 = rep(0,l8)
+distsfor9 = rep(0,l9)
+distsfor10 = rep(0,l10)
+distsfor11 = rep(0,l11)
+distsfor12 = rep(0,l12)
+
+## Find distances to cluster centre (sum of the squared distances) and store in above objects
+## Function to work out train distances for each cluster group
+
+f1 = function(x,z) {
+  # z = results$centers[1,]
+  # x = train1[j,]
+  a = sum((z - x)^2)
+  a
+}
+
+distsfor1 = apply(train1, 1, f1, z=results$centers[1,]) # vector of distances for cluster 1 (there re 707 of these)
+distsfor2 = apply(train2, 1, f1, z=results$centers[2,])
+distsfor3 = apply(train3, 1, f1, z=results$centers[3,])
+distsfor4 = apply(train4, 1, f1, z=results$centers[4,])
+distsfor5 = apply(train5, 1, f1, z=results$centers[5,])
+distsfor6 = apply(train6, 1, f1, z=results$centers[6,])
+distsfor7 = apply(train7, 1, f1, z=results$centers[7,])
+distsfor8 = apply(train8, 1, f1, z=results$centers[8,])
+distsfor9 = apply(train9, 1, f1, z=results$centers[9,])
+distsfor10 = apply(train10, 1, f1, z=results$centers[10,])
+distsfor11 = apply(train11, 1, f1, z=results$centers[11,])
+distsfor12 = apply(train12, 1, f1, z=results$centers[12,])
 
 
 
+#### 9. TRAIN DATA: PERCENTILES ####
 
 
+dim(datat)
+trainpercentile = rep(0,27432) # numeric vector of 0's length 27432 (train set)
+
+for (j in 1:27432) {
+  traincluster = results$cluster[j]  # assiged train sample cluster groups 
+  # loop through train cluster group and get distances to cluster centre of assigned group
+  if (traincluster==1) {
+    distfortrain = sum((results$centers[1,] - datat[j,])^2)
+    combined = c(distfortrain, distsfor1) }
+  
+  if (traincluster==2) {
+    distfortrain = sum((results$centers[2,] - datat[j,])^2)
+    combined = c(distfortrain, distsfor2) }
+  
+  if (traincluster==3) {
+    distfortrain = sum((results$centers[3,] - datat[j,])^2)
+    combined = c(distfortrain, distsfor3) }
+  
+  if (traincluster==4) {
+    distfortrain = sum((results$centers[4,] - datat[j,])^2)
+    combined = c(distfortrain, distsfor4) }
+  
+  if (traincluster==5) {
+    distfortrain = sum((results$centers[5,] - datat[j,])^2)
+    combined = c(distfortrain, distsfor5) }
+  
+  if (traincluster==6) {
+    distfortrain = sum((results$centers[6,] - datat[j,])^2)
+    combined = c(distfortrain, distsfor6) }
+  
+  if (traincluster==7) {
+    distfortrain = sum((results$centers[7,] - datat[j,])^2)
+    combined = c(distfortrain, distsfor7) }
+  
+  if (traincluster==8) {
+    distfortrain = sum((results$centers[8,] - datat[j,])^2)
+    combined = c(distfortrain, distsfor8) }
+  
+  if (traincluster==9) {
+    distfortrain = sum((results$centers[9,] - datat[j,])^2)
+    combined = c(distfortrain, distsfor9) }
+  
+  if (traincluster==10) {
+    distfortrain = sum((results$centers[10,] - datat[j,])^2)
+    combined = c(distfortrain, distsfor10) }
+  
+  if (traincluster==11) {
+    distfortrain = sum((results$centers[11,] - datat[j,])^2)
+    combined = c(distfortrain, distsfor11) }
+  
+  if (traincluster==12) {
+    distfortrain = sum((results$centers[12,] - datat[j,])^2)
+    combined = c(distfortrain, distsfor12) }
+  
+  ## rank of sample divided by total number of samples in cluster *100
+  ranktrain = rank(combined)[1]
+  trainpercentile[j] = round(100*(ranktrain - 0.5) / length(combined), 1)
+  
+}
+
+View(trainpercentile) # percetile = near 100% means that your test percentile is near to the most extreme of the originals in that cluster
+
+## DF for assigned cluster group and percentile
+trainresults = as.data.frame(cbind(results$cluster, trainpercentile))
+View(trainresults)
+
+## Swap cluster numbers for codes
+## Populate FaunalCluster col with new names (see dendrogram from Step 21)
+trainresults$V1[trainresults$V1 == 11] <- "A1"
+trainresults$V1[trainresults$V1 == 1]<- "A2a"
+trainresults$V1[trainresults$V1 == 8] <- "A2b"
+trainresults$V1[trainresults$V1 == 3]<- "B1a"
+trainresults$V1[trainresults$V1 == 7] <- "B1b"
+trainresults$V1[trainresults$V1 == 4] <- "C1a"
+trainresults$V1[trainresults$V1 == 5] <- "C1b"
+trainresults$V1[trainresults$V1 == 12] <- "D1"
+trainresults$V1[trainresults$V1 == 2] <- "D2a"
+trainresults$V1[trainresults$V1 == 10] <- "D2b"
+trainresults$V1[trainresults$V1 == 6] <- "D2c"
+trainresults$V1[trainresults$V1 == 9]<- "D2d"
+
+## Note col FaunalCluster is currently a chr - need to covert to a factor
+trainresults$V1=as.factor(trainresults$V1)
+colnames(trainresults)[1]="Cluster"
+colnames(trainresults)[2]="Percentile"
+str(trainresults) # TRAIN DATA CLUSTER GROUP AND ASSOCIATED PERCENTILE
 
 
-
-
-
-
-
+## CreatE a df equivalent to DistanceToClusterCentres6.csv
 ## Need to add gear to object 'DistancetoCentersTrain6'
-names(DistancetoCentersTrain6)
+str(DistancetoCentersTrain3)
 names(train.data4.5)
-DistancetoCentersTrain7=cbind(DistancetoCentersTrain6,train.data4.5[809])
-names(DistancetoCentersTrain7)
+DistancetoCentersTrain4=cbind(DistancetoCentersTrain3,trainresults$Percentile,train.data4.5[809])
+names(DistancetoCentersTrain4)
+
+## Update column name for 'Percentile'
+colnames(DistancetoCentersTrain4)[16] <- "Percentile"
 
 ## Update gear names
-DistancetoCentersTrain7$Gear=as.character(DistancetoCentersTrain7$Gear)# change to character
-DistancetoCentersTrain7$Gear[DistancetoCentersTrain7$Gear=="DG"] <- "0.1m2 Day Grab"
-DistancetoCentersTrain7$Gear[DistancetoCentersTrain7$Gear=="MHN"] <- "0.1m2 Hamon Grab"
-DistancetoCentersTrain7$Gear[DistancetoCentersTrain7$Gear=="VV"] <- "0.1m2 Van Veen Grab"
-DistancetoCentersTrain7$Gear[DistancetoCentersTrain7$Gear=="SM"] <- "0.1m2 Smith McIntyre Grab"
+DistancetoCentersTrain4$Gear=as.character(DistancetoCentersTrain4$Gear)# change to character
+DistancetoCentersTrain4$Gear[DistancetoCentersTrain4$Gear=="DG"] <- "0.1m2 Day Grab"
+DistancetoCentersTrain4$Gear[DistancetoCentersTrain4$Gear=="MHN"] <- "0.1m2 Hamon Grab"
+DistancetoCentersTrain4$Gear[DistancetoCentersTrain4$Gear=="VV"] <- "0.1m2 Van Veen Grab"
+DistancetoCentersTrain4$Gear[DistancetoCentersTrain4$Gear=="SM"] <- "0.1m2 Smith McIntyre Grab"
 
-## Create a csv for train sample distance/zscore/percentile for use in shiny app. 
-write.csv(DistancetoCentersTrain7,file = "OUTPUTS/DistancetoCentersTrain6.csv",row.names=F)
+## Create a csv for train sample distance/percentile for use in shiny app. 
+write.csv(DistancetoCentersTrain4,file = "OUTPUTS/DistancetoCentersTrain4.csv",row.names=F)
 
 ## Select stations from survey
-NWJBCentres=DistancetoCentersTrain6[ which(DistancetoCentersTrain6$Survey=='North West Jones Bank_MCZ_infauna'),] 
+#NWJBCentres=DistancetoCentersTrain6[ which(DistancetoCentersTrain6$Survey=='North West Jones Bank_MCZ_infauna'),] 
 
 ## Write NWJB data to csv
 write.csv(NWJBCentres,file = "OUTPUTS/NWJBCentres.csv",row.names=F)
 
 
 
-#### 8. TEST DATA: GENERATE ####
+#### 10. TEST DATA: GENERATE ####
 
 ## Enter new dataset into PRIMER PART C (see subfolder: data)
 
@@ -417,11 +591,11 @@ test.raw2$Survey=as.factor(test.raw2$Survey)
 ## Get number of samples by Survey (Table 1)
 library(dplyr)
 count=test.raw2%>%group_by(SurveyName)%>%summarise(n=n(),maxLat=max(Latitude_WGS84),minLat=min(Latitude_WGS84),maxLon=max(Longitude_WGS84),minLon=min(Longitude_WGS84))
-View(count)
+#View(count)
 
 ## Find gear used for different surveys (Table 1)
 names(test.raw2)
-View(test.raw2[,c(13669,13539,13540,13541)])
+#View(test.raw2[,c(13669,13539,13540,13541)])
 
 ## Select only the faunal data. 
 test.raw3=test.raw2[,1:13531]
@@ -431,7 +605,7 @@ test.raw3[is.na(test.raw3)] <- 0
 
 ## Transpose the faunal data (keep column names)
 t_test.raw3 = setNames(data.frame(t(test.raw3[,-1])), test.raw3[,1])
-View(t_test.raw3)
+#View(t_test.raw3)
 
 ## Bring in aggregation data
 agg=read.csv("DATA/PARTCAGG16112018.csv", header=T,
@@ -467,7 +641,7 @@ sum(numfamtest > 0)# 311
 
 
 
-#### 9. TEST DATA: IDENTIFY FAMILIES NOT PRESENT IN TRAIN DATA ####
+#### 11. TEST DATA: IDENTIFY FAMILIES NOT PRESENT IN TRAIN DATA ####
 
 ## Get taxon names for test data
 testfamnames=famabundtest[,1]
@@ -497,7 +671,7 @@ df2 # Answer: 2 familes in test set not present in train set (Laonidae = Gastrop
 
 
 
-#### 10. TEST DATA: DF WITH SAME FAMILIES AS TRAIN DATA ####
+#### 12. TEST DATA: DF WITH SAME FAMILIES AS TRAIN DATA ####
 
 ## Note that test data (df famabundtest) has 776 families, whereas train has only 703. Therefore we need to remove the additional families from test data for predict. Note that this doesn't mean the test data has 776 families as many rows (taxa) will have zero abundance.
 
@@ -574,7 +748,7 @@ dim(pos.test) #636   3
 
 
 
-#### 11. TEST DATA: IDENTIFY FAUNAL CLUSTER GROUPS ####
+#### 13. TEST DATA: IDENTIFY FAUNAL CLUSTER GROUPS ####
 
 ## Call library
 library("flexclust")
@@ -630,7 +804,7 @@ faunal.cluster.test$FaunalCluster=as.factor(faunal.cluster.test$FaunalCluster)
 
 
 
-#### 12. TEST DATA: DISTANCE TO CLUSTER CENTRES ####
+#### 14. TEST DATA: DISTANCE TO CLUSTER CENTRES ####
 
 ## Find distances to cluster centres
 #https://stackoverflow.com/questions/44137906/r-data-output-ordered-by-distance-from-cluster-center
@@ -685,44 +859,110 @@ DistancetoCentersTest4$D2c <- as.numeric(as.character(DistancetoCentersTest4$D2c
 DistancetoCentersTest4$D2d <- as.numeric(as.character(DistancetoCentersTest4$D2d))
 #str(DistancetoCentersTest4)
 
-## Calculate z-score
-DistancetoCentersTest4$zA1=(DistancetoCentersTest4$A1-meanA1dist)/sdA1dist
-DistancetoCentersTest4$zA2a=(DistancetoCentersTest4$A2a-meanA2adist)/sdA2adist
-DistancetoCentersTest4$zA2b=(DistancetoCentersTest4$A2b-meanA2bdist)/sdA2bdist
-DistancetoCentersTest4$zB1a=(DistancetoCentersTest4$B1a-meanB1adist)/sdB1adist
-DistancetoCentersTest4$zB1b=(DistancetoCentersTest4$B1b-meanB1bdist)/sdB1bdist
-DistancetoCentersTest4$zC1a=(DistancetoCentersTest4$C1a-meanC1adist)/sdC1adist
-DistancetoCentersTest4$zC1b=(DistancetoCentersTest4$C1b-meanC1bdist)/sdC1bdist
-DistancetoCentersTest4$zD1=(DistancetoCentersTest4$D1-meanD1dist)/sdD1dist
-DistancetoCentersTest4$zD2a=(DistancetoCentersTest4$D2a-meanD2adist)/sdD2adist
-DistancetoCentersTest4$zD2b=(DistancetoCentersTest4$D2b-meanD2bdist)/sdD2bdist
-DistancetoCentersTest4$zD2c=(DistancetoCentersTest4$D2c-meanD2cdist)/sdD2cdist
-DistancetoCentersTest4$zD2d=(DistancetoCentersTest4$D2d-meanD2ddist)/sdD2ddist
-#View(DistancetoCentersTest4)
-
-## Calculate z-scores percentiles
-DistancetoCentersTest4$pA1=round(pnorm(DistancetoCentersTest4$zA1)*100,1)
-DistancetoCentersTest4$pA2a=round(pnorm(DistancetoCentersTest4$zA2a)*100,1)
-DistancetoCentersTest4$pA2b=round(pnorm(DistancetoCentersTest4$zA2b)*100,1)
-DistancetoCentersTest4$pB1a=round(pnorm(DistancetoCentersTest4$zB1a)*100,1)
-DistancetoCentersTest4$pB1b=round(pnorm(DistancetoCentersTest4$zB1b)*100,1)
-DistancetoCentersTest4$pC1a=round(pnorm(DistancetoCentersTest4$zC1a)*100,1)
-DistancetoCentersTest4$pC1b=round(pnorm(DistancetoCentersTest4$zC1b)*100,1)
-DistancetoCentersTest4$pD1=round(pnorm(DistancetoCentersTest4$zD1)*100,1)
-DistancetoCentersTest4$pD2a=round(pnorm(DistancetoCentersTest4$zD2a)*100,1)
-DistancetoCentersTest4$pD2b=round(pnorm(DistancetoCentersTest4$zD2b)*100,1)
-DistancetoCentersTest4$pD2c=round(pnorm(DistancetoCentersTest4$zD2c)*100,1)
-DistancetoCentersTest4$pD2d=round(pnorm(DistancetoCentersTest4$zD2d)*100,1)
-#View(DistancetoCentersTest4)
-
-# Select stations from survey
-NWJBMonCentres=DistancetoCentersTest4[ which(DistancetoCentersTest4$Survey=='NWJB'),] 
-#View(NWJBMonCentres)
-#write.csv(NWJBMonCentres,file = "OUTPUTS/NWJBMonCentres.csv",row.names=F)
 
 
+#### 15. TEST DATA: PERCENTILES ####
+#### Note that you only need to do the above stuff once for each
+#### of the clusters. Then you store it and wait for a test case
+#### to turn up.
 
-#### 13. TEST DATA: SAMPLE LOCATION MAP ####
+testpercentile = rep(0,636) # numeric vector of 0's length 636 (test set)
+
+for (j in 1:636) {
+  #testcluster = pred_test_JB[j]
+  testcluster = pred_test[j]  # assiged test sample cluster groups 
+  # loop through test cluster group and get distances to cluster centre of assigned group
+  if (testcluster==1) {
+    distfortest = sum((results$centers[1,] - testfamallt3[j,])^2)
+    combined = c(distfortest, distsfor1) }
+  
+  if (testcluster==2) {
+    distfortest = sum((results$centers[2,] - testfamallt3[j,])^2)
+    combined = c(distfortest, distsfor2) }
+  
+  if (testcluster==3) {
+    distfortest = sum((results$centers[3,] - testfamallt3[j,])^2)
+    combined = c(distfortest, distsfor3) }
+  
+  if (testcluster==4) {
+    distfortest = sum((results$centers[4,] - testfamallt3[j,])^2)
+    combined = c(distfortest, distsfor4) }
+  
+  if (testcluster==5) {
+    distfortest = sum((results$centers[5,] - testfamallt3[j,])^2)
+    combined = c(distfortest, distsfor5) }
+  
+  if (testcluster==6) {
+    distfortest = sum((results$centers[6,] - testfamallt3[j,])^2)
+    combined = c(distfortest, distsfor6) }
+  
+  if (testcluster==7) {
+    distfortest = sum((results$centers[7,] - testfamallt3[j,])^2)
+    combined = c(distfortest, distsfor7) }
+  
+  if (testcluster==8) {
+    distfortest = sum((results$centers[8,] - testfamallt3[j,])^2)
+    combined = c(distfortest, distsfor8) }
+  
+  if (testcluster==9) {
+    distfortest = sum((results$centers[9,] - testfamallt3[j,])^2)
+    combined = c(distfortest, distsfor9) }
+  
+  if (testcluster==10) {
+    distfortest = sum((results$centers[10,] - testfamallt3[j,])^2)
+    combined = c(distfortest, distsfor10) }
+  
+  if (testcluster==11) {
+    distfortest = sum((results$centers[11,] - testfamallt3[j,])^2)
+    combined = c(distfortest, distsfor11) }
+  
+  if (testcluster==12) {
+    distfortest = sum((results$centers[12,] - testfamallt3[j,])^2)
+    combined = c(distfortest, distsfor12) }
+  
+  ## rank of sample divided by total number of samples in cluster *100
+  ranktest = rank(combined)[1]
+  testpercentile[j] = round(100*(ranktest - 0.5) / length(combined), 1)
+  
+}
+
+####
+#### percetile = near 100% means that your test percentile is
+#### near to the most extreme of the originals in that cluster
+####
+
+testresults = as.data.frame(cbind(pred_test, testpercentile))
+str(testresults)
+
+## Swap cluster numbers for codes
+## Populate FaunalCluster col with new names (see dendrogram from Step 21)
+testresults$pred_test[testresults$pred_test == 11] <- "A1"
+testresults$pred_test[testresults$pred_test == 1]<- "A2a"
+testresults$pred_test[testresults$pred_test == 8] <- "A2b"
+testresults$pred_test[testresults$pred_test == 3]<- "B1a"
+testresults$pred_test[testresults$pred_test == 7] <- "B1b"
+testresults$pred_test[testresults$pred_test == 4] <- "C1a"
+testresults$pred_test[testresults$pred_test == 5] <- "C1b"
+testresults$pred_test[testresults$pred_test == 12] <- "D1"
+testresults$pred_test[testresults$pred_test == 2] <- "D2a"
+testresults$pred_test[testresults$pred_test == 10] <- "D2b"
+testresults$pred_test[testresults$pred_test == 6] <- "D2c"
+testresults$pred_test[testresults$pred_test == 9]<- "D2d"
+
+
+## Note col FaunalCluster is currently a chr - need to covert to a factor
+testresults$pred_test=as.factor(testresults$pred_test)
+str(testresults) # TEST DATA CLUSTER GROUP AND ASSOCIATED PERCENTILE
+
+## Change names of cols in object 'testresults'
+names(testresults)[1]<-paste("Cluster")
+names(testresults)[2]<-paste("Percentile")
+str(testresults)
+
+
+
+
+#### 16. TEST DATA: SAMPLE LOCATION MAP ####
 
 ## Identify 6 distinct colours for use in map
 scales::show_col(scales::hue_pal()(6)) 
@@ -769,7 +1009,7 @@ testloc1
 
 
 
-#### 14. TRAIN AND TEST: FAUNAL CLUSTER TRAIN AND TEST SAMPLE LOCATIONS (FIGURE 1) ####
+#### 17. TRAIN AND TEST: FAUNAL CLUSTER TRAIN AND TEST SAMPLE LOCATIONS (FIGURE 1) ####
 
 ## Save image as .png
 png("OUTPUTS/FIGURE 1.png",width=58, height=37, units="cm", res=800)
@@ -779,7 +1019,7 @@ dev.off()
 
 
 
-#### 15. TEST DATA: FAUNAL CLUSTER MAP (FIGURE 3) ####
+#### 18. TEST DATA: FAUNAL CLUSTER MAP (FIGURE 3) ####
 
 ## 1st create an inset map based on Figure 1a
 
@@ -864,7 +1104,7 @@ print(inset2,vp=v2)
 dev.off() 
 
 
-#### 16. TRAIN AND TEST SAMPLE TOGETHER ####
+#### 19. TRAIN AND TEST SAMPLE TOGETHER ####
 
 ## Identify washed out colours for the 12 faunal groups. Choose a lighter tint (5th from left, bottom row) of the parent colour (http://www.color-hex.com/color/e1e19a). HEX colours for 12 groups are:#0000EE,#00FFFF,#05AAC1,#EEAEEE,#9A32CD,#00CD00,#9AFF9A,#B40202,#FF0000,#FF8C00,#FFFF00,#B4B404
 
@@ -902,7 +1142,7 @@ plot2
 
 
 
-#### 17. TRAIN & TEST MAP: IDRBNR ####
+#### 20. TRAIN & TEST MAP: IDRBNR ####
 
 IDRBNR= ggplot()+
   geom_polygon(data=defra.dem.df, aes(x=long, y=lat, group=group,fill=Depth))+
@@ -922,7 +1162,7 @@ IDRBNR
 
 
 
-#### 18. TRAIN & TEST MAP: HHW ####
+#### 21. TRAIN & TEST MAP: HHW ####
 
 HHW= ggplot()+
   geom_polygon(data=defra.dem.df, aes(x=long, y=lat, group=group,fill=Depth))+
@@ -942,7 +1182,7 @@ HHW
 
 
 
-#### 19. TRAIN & TEST MAP: NNSB ####
+#### 22. TRAIN & TEST MAP: NNSB ####
 
 NNSB= ggplot()+
   geom_polygon(data=defra.dem.df, aes(x=long, y=lat, group=group,fill=Depth))+
@@ -962,7 +1202,7 @@ NNSB
 
 
 
-#### 20. TRAIN & TEST MAP: U ####
+#### 23. TRAIN & TEST MAP: U ####
 
 U= ggplot()+
   geom_polygon(data=defra.dem.df, aes(x=long, y=lat, group=group,fill=Depth))+
@@ -982,7 +1222,7 @@ U
 
 
 
-#### 21. TRAIN & TEST MAP: NWJB ####
+#### 24. TRAIN & TEST MAP: NWJB ####
 
 NWJB= ggplot()+
   geom_polygon(data=defra.dem.df, aes(x=long, y=lat, group=group,fill=Depth))+
@@ -1002,7 +1242,7 @@ NWJB
 
 
 
-#### 22. TRAIN & TEST MAP: SCRSMP ####
+#### 25. TRAIN & TEST MAP: SCRSMP ####
 
 SCRSMP= ggplot()+
   geom_polygon(data=defra.dem.df, aes(x=long, y=lat, group=group,fill=Depth))+
@@ -1022,7 +1262,7 @@ SCRSMP
 
 
 
-## 23. PRODUCE SINGLE FIGURE FOR ALL SITES (FIGURE 4)
+## 26. PRODUCE SINGLE FIGURE FOR ALL SITES (FIGURE 4)
 
 top=plot_grid(IDRBNR,SCRSMP, labels = c("a)","d)"),nrow=2, align='v',label_size = 22, hjust = 0.05)
 
