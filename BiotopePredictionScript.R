@@ -513,7 +513,7 @@ write.csv(DistancetoCentersTrain4,file = "OUTPUTS/DistancetoCentersTrain4.csv",r
 #NWJBCentres=DistancetoCentersTrain6[ which(DistancetoCentersTrain6$Survey=='North West Jones Bank_MCZ_infauna'),] 
 
 ## Write NWJB data to csv
-write.csv(NWJBCentres,file = "OUTPUTS/NWJBCentres.csv",row.names=F)
+#write.csv(NWJBCentres,file = "OUTPUTS/NWJBCentres.csv",row.names=F)
 
 
 
@@ -881,9 +881,11 @@ DistancetoCentersTest4$D2d <- as.numeric(as.character(DistancetoCentersTest4$D2d
 #### of the clusters. Then you store it and wait for a test case
 #### to turn up.
 
-testpercentile = rep(0,636) # numeric vector of 0's length 636 (test set)
+#testpercentile = rep(0,636) # numeric vector of 0's length 636 (test set)
+testpercentile = rep(0,length(pred_test))
 
-for (j in 1:636) {
+#for (j in 1:636) {
+  for (j in 1:length(pred_test)) {  
   #testcluster = pred_test_JB[j]
   testcluster = pred_test[j]  # assiged test sample cluster groups 
   # loop through test cluster group and get distances to cluster centre of assigned group
