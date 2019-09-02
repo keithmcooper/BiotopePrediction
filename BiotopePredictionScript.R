@@ -1029,9 +1029,11 @@ testloc1
 #### 17. TRAIN AND TEST: FAUNAL CLUSTER TRAIN AND TEST SAMPLE LOCATIONS (FIGURE 1) ####
 
 ## Save image as .png
-png("OUTPUTS/FIGURE 1.png",width=58, height=37, units="cm", res=800)
+#png("OUTPUTS/FIGURE 1.png",width=58, height=37, units="cm", res=800)
+png("OUTPUTS/FIGURE 1.png",width=58, height=37.5, units="cm", res=300)
 #tiff("OUTPUTS/FIGURE 4.tiff",width=58, height=37, units="cm", res=800)
-plot_grid(fig4a, testloc1, labels = c("a)","b)"),nrow = 1,label_size = 24)  
+#plot_grid(fig4a, testloc1, labels = c("a)","b)"),nrow = 1,label_size = 24)  
+plot_grid(fig1a, testloc1, labels = c("a)","b)"),nrow = 1,label_size = 24) 
 dev.off()
 
 
@@ -1299,6 +1301,7 @@ f7=f6+draw_label("Longitude", x=0.5, y=  0, vjust=-0.5, angle= 0, size=22) +#
 p <- plot_grid(f7, legendfclus, ncol = 2, rel_widths = c(1, 0.1))
 
 ## Save image as .png
-png("OUTPUTS/FIGURE 4.png",width=70, height=38, units="cm", res=400)#res=600
+#png("OUTPUTS/FIGURE 4.png",width=70, height=38, units="cm", res=400)#res=600
+png("OUTPUTS/FIGURE 4.png",width=70, height=38, units="cm", res=300)#res=600
 p
 dev.off()
